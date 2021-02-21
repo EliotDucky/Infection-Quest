@@ -6,6 +6,7 @@
 #using scripts\shared\util_shared;
 
 #using scripts\zm\_zm_zonemgr;
+#using scripts\zm\_zm_attackables;
 
 #insert scripts\shared\shared.gsh;
 
@@ -21,6 +22,10 @@ function __init__(){
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
 
+	//get attackables
+	level.console_attackables = struct::get_array("console_attackable", "targetname");
+	//ORDER BY SCRIPT INT
+
 	//waitfor power
 	wait(0.05);
 	level flag::wait_till("power_on");
@@ -32,7 +37,8 @@ function __init__(){
 }
 
 /*
-Quest console: trigger_use, targetname: "quest_console", target: struct quest reward
+Quest console: trigger_use, targetname: "quest_console", target: struct quest reward,
+	script_int: [num corresponding to attackable]
 PRECACHE HINT STRINGS
 properties:
 	.waiting - true when can be activated
@@ -94,6 +100,7 @@ function doTrial(){
 
 	//IF NOT SOLO
 	if(true){
+		self.attackable = level.attackables[self.script_int];
 		self thread zombiesTargetConsole();
 	}else{
 		//despawn all zombies and stop them spawning
@@ -110,10 +117,11 @@ function doTrial(){
 }
 
 function zombiesTargetConsole(){
+	self.attackable zm_attackables::activate();
 }
 
-//call on: console trigger
 function zombieUnTargetConsole(){
+	self.attackable zm_attackables::deactivate();
 }
 
 function freerun1(){
