@@ -6,8 +6,6 @@
 #using scripts\shared\util_shared;
 
 #using scripts\zm\_zm_zonemgr;
-//#using scripts\zm\_zm_attackables;
-#using scripts\zm\_zm_utility;
 
 #insert scripts\shared\shared.gsh;
 
@@ -22,9 +20,6 @@ function __init__(){
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
-
-	//get attackables - consider replacing with zm_ultility point of interest
-	//level.console_attackables = struct::get_array("console_attackable", "targetname");
 
 	//waitfor power
 	wait(0.05);
@@ -97,15 +92,9 @@ function unlock(){
 //returns: true if beaten, false if failed
 function doTrial(){
 
-	//console_attackable = undefined;
 	//IF NOT SOLO
 	if(true){
-		attractor_dist = 1024;
-		num_attractors = 96;
-		poi_value = 10000;
-		attract_dist_diff = 5;
-		self thread zombiesTargetConsole(attractor_dist, num_attractors, poi_value, attract_dist_diff);
-		wait(0.05);
+		self thread zombiesTargetConsole();
 	}else{
 		//despawn all zombies and stop them spawning
 	}
@@ -114,39 +103,17 @@ function doTrial(){
 	won = self [[level.console_trials[trial_index]]]();
 	wait(0.05);
 	self zombieUnTargetConsole();
-	/*
-	if(isdefined(console_attackable)){
-		//console_attackable zm_attackables::deactivate();
-	}
-	*/
 
 	if(won){
 		array::remove_index(level.console_trials, trial_index);
 	}
 }
 
-//call on: console trigger
-/* looping version
-function zombiesTargetConsole(attractor_dist, num_attractors, poi_value){
-	self.target_console = true;
-	while(self.target_console){
-		self zm_utility::create_zombie_point_of_interest(attractor_dist, num_attractors, poi_value);
-		wait(0.05);
-	}
-}*/
-
-function zombiesTargetConsole(attractor_dist, num_attractors, poi_value, attract_dist_diff){
-	self zm_utility::create_zombie_point_of_interest(attractor_dist, num_attractors, poi_value);
-	self.attract_to_origin = true;
-	self thread zm_utility::create_zombie_point_of_interest_attractor_positions( 4, attract_dist_diff );
-	self thread zm_utility::wait_for_attractor_positions_complete();
-	IPrintLnBold("targeting");
+function zombiesTargetConsole(){
 }
 
 //call on: console trigger
 function zombieUnTargetConsole(){
-	//self notify("untarget");
-	//self.under_attack = false;
 }
 
 function freerun1(){
