@@ -24,7 +24,7 @@ function __init__(){
 
 	//get attackables
 	level.console_attackables = struct::get_array("console_attackable", "targetname");
-	//ORDER BY SCRIPT INT
+	//ORDER BY SCRIPT INT***
 
 	//waitfor power
 	wait(0.05);
