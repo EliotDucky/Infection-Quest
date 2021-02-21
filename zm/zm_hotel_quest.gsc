@@ -6,6 +6,7 @@
 #using scripts\shared\util_shared;
 
 #using scripts\zm\_zm_zonemgr;
+#using scripts\zm\_zm_utility;
 
 #insert scripts\shared\shared.gsh;
 
@@ -94,7 +95,12 @@ function doTrial(){
 
 	//IF NOT SOLO
 	if(true){
-		self thread zombiesTargetConsole();
+		attractor_dist = 1024;
+		num_attractors = 96;
+		poi_value = 10000;
+		attract_dist_diff = 5;
+		self thread zombiesTargetConsole(attractor_dist, num_attractors, poi_value, attract_dist_diff);
+		wait(0.05);
 	}else{
 		//despawn all zombies and stop them spawning
 	}
@@ -109,11 +115,17 @@ function doTrial(){
 	}
 }
 
-function zombiesTargetConsole(){
+function zombiesTargetConsole(attractor_dist, num_attractors, poi_value, attract_dist_diff){
+	self zm_utility::create_zombie_point_of_interest(attractor_dist, num_attractors, poi_value);
+	self.attract_to_origin = true;
+	self thread zm_utility::create_zombie_point_of_interest_attractor_positions( 4, attract_dist_diff );
+	self thread zm_utility::wait_for_attractor_positions_complete();
+	IPrintLnBold("targeting");
 }
 
 //call on: console trigger
 function zombieUnTargetConsole(){
+	self zm_utility::deactivate_zombie_point_of_interest();
 }
 
 function freerun1(){
