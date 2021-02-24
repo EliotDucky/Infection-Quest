@@ -106,7 +106,8 @@ function doTrial(player){
 	self zombieUnTargetConsole();
 
 	if(won){
-		array::remove_index(level.console_trials, trial_index);
+		//array::remove_index(level.console_trials, trial_index);
+		ArrayRemoveIndex(level.console_trials, trial_index, false);
 	}
 }
 
