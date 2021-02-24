@@ -15,7 +15,8 @@ REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
 
 function __init__(){
 	//init trials
-	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
+	//level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
+	level.console_trials = array(&freerun1, &freerun2);
 
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
@@ -119,7 +120,8 @@ function zombieUnTargetConsole(){
 function freerun1(){
 	IPrintLnBold("freerun1");
 	time_limit = 120; //seconds
-	start_struct = GetEnt("freerun1", "targetname");
+	start_struct = struct::get("freerun1", "targetname");
+	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun1_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
 	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
@@ -128,7 +130,8 @@ function freerun1(){
 function freerun2(){
 	IPrintLnBold("freerun2");
 	time_limit = 120; //seconds
-	start_struct = GetEnt("freerun2", "targetname");
+	start_struct = struct::get("freerun2", "targetname");
+	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun2_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
 	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
@@ -142,16 +145,14 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
 	//teleport player to start
-	self SetOrigin(start_struct GetOrigin());
-	self SetPlayerAngles(start_struct.angles);
+	self playerTeleport(start_struct);
 	//if player touches any chasm trig, teleport them back to the start
 	array::thread_all(chasm_trigs, &chasmWaitFor, start_struct, self);
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	self thread freerunTimer(time_limit);
 	self waittill("freerun_done");
-	self SetOrigin(map_struct.origin);
-	self.angles = map_struct.angles;
+	self playerTeleport(map_struct);
 	return self.freerun_won;
 }
 
@@ -163,9 +164,8 @@ function chasmWaitFor(start_struct, player){
 	while(true){
 		self waittill("trigger", p);
 		IPrintLnBold("chasm");
-		player SetOrigin(start_struct.origin);
+		p playerTeleport(start_struct);
 		wait(0.05);
-		//p.angles = start_struct.angles;
 	}
 }
 
@@ -193,6 +193,7 @@ function freerunTimer(limit){
 			IPrintLnBold("Freerun Time: " + t + " seconds");
 		}
 	}
+	IPrintLnBold("time limit over");
 	self notify("freerun_done"); 
 }
 
@@ -206,4 +207,10 @@ function holdOut2(){
 	IPrintLnBold("holdOut1");
 	wait(10);
 	return true;
+}
+
+//Call On: Player
+function playerTeleport(ent){
+	self SetOrigin(ent.origin);
+	self SetPlayerAngles(ent.angles);
 }
