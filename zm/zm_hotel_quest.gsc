@@ -63,7 +63,7 @@ function questConsoleWaitFor(){
 			array::thread_all(level.quest_consoles, &temporaryLock, self);
 			self SetHintString("");
 
-			if(self doTrial()){
+			if(self doTrial(player)){
 				self.complete = true;
 			}
 			array::thread_all(level.quest_consoles, &unlock);
@@ -91,7 +91,7 @@ function unlock(){
 
 //call on: quest console trig
 //returns: true if beaten, false if failed
-function doTrial(){
+function doTrial(player){
 
 	//IF NOT SOLO
 	if(true){
@@ -101,7 +101,7 @@ function doTrial(){
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
-	won = self [[level.console_trials[trial_index]]]();
+	won = player [[level.console_trials[trial_index]]]();
 	wait(0.05);
 	self zombieUnTargetConsole();
 
@@ -117,6 +117,7 @@ function zombiesTargetConsole(){
 function zombieUnTargetConsole(){
 }
 
+//call On: player
 function freerun1(){
 	IPrintLnBold("freerun1");
 	time_limit = 120; //seconds
@@ -127,6 +128,7 @@ function freerun1(){
 	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
 }
 
+//call On: player
 function freerun2(){
 	IPrintLnBold("freerun2");
 	time_limit = 120; //seconds
