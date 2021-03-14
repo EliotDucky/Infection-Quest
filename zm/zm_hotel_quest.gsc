@@ -250,7 +250,7 @@ function holdOutSpawning(holdout_zone, zombie_health = 2000){
 		}
 
 		//get zombies in this zone
-		all_zombs = GetAITeamArray( "axis" );
+		all_zombs = GetAIArray( level.zombie_team );
 		foreach(zomb in all_zombs){
 			if(zomb zm_zonemgr::entity_in_zone(holdout_zone)){
 				zomb.no_powerups = true; //doesn't drop powerups
