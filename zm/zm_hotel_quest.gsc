@@ -154,6 +154,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	self thread freerunTimer(time_limit);
+	level thread freerunMovement();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
@@ -198,6 +199,37 @@ function freerunTimer(limit){
 	}
 	IPrintLnBold("time limit over");
 	self notify("freerun_done"); 
+}
+
+//call on level
+//runs with a waittill
+function freerunMovement(){
+	//MOVE TO CSC
+	double_jump_dflt = GetDvarInt("doublejump_enabled");
+	juke_enable_dflt = GetDvarInt("juke_enabled");
+	playerEnergy_dflt = GetDvarInt("playerEnergy_enabled");
+	wallrun_dflt = GetDvarInt("wallrun_enabled");
+	sprintleap_dflt = GetDvarInt("sprintLeap_enabled");
+	traverse_dflt = GetDvarInt("traverse_mode");
+	weaponrest_dflt = GetDvarInt("weaponrest_enabled");
+
+	SetDvar( "doublejump_enabled", 1 );
+    SetDvar( "juke_enabled", 1 );
+    SetDvar( "playerEnergy_enabled", 1 );
+    SetDvar( "wallrun_enabled", 1 );
+    SetDvar( "sprintLeap_enabled", 1 );
+    SetDvar( "traverse_mode", 3 );
+    SetDvar( "weaponrest_enabled", 1 );
+
+    level waittill("freerun_done");
+
+    SetDvar( "doublejump_enabled", double_jump_dflt );
+    SetDvar( "juke_enabled", juke_enable_dflt );
+    SetDvar( "playerEnergy_enabled", playerEnergy_dflt );
+    SetDvar( "wallrun_enabled", wallrun_dflt );
+    SetDvar( "sprintLeap_enabled", sprintleap_dflt );
+    SetDvar( "traverse_mode", traverse_dflt );
+    SetDvar( "weaponrest_enabled", weaponrest_dflt );
 }
 
 function holdOut1(){
