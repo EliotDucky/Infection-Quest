@@ -4,16 +4,20 @@
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
 #using scripts\shared\util_shared;
+#using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
 
 #insert scripts\shared\shared.gsh;
+#insert scripts\shared\version.gsh;
 
 #namespace zm_hotel_quest;
 
 REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
 
 function __init__(){
+	registerClientfields();
+
 	//init trials
 	//level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
 	level.console_trials = array(&freerun1, &freerun2);
@@ -45,6 +49,10 @@ Freerun Setup:
 	endpoint: trigger_multiple, targetname: "freerun[num]_complete"
 	all chasms: trigger_multiple, targetname: "chasm_trigger"
 */
+
+function registerClientfields(){
+	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
+}
 
 //call on: quest console trig
 function questConsoleInit(){
@@ -154,6 +162,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	self thread freerunTimer(time_limit);
+	self thread freerunMovement();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
@@ -198,6 +207,16 @@ function freerunTimer(limit){
 	}
 	IPrintLnBold("time limit over");
 	self notify("freerun_done"); 
+}
+
+//call on player
+//runs with a waittill
+function freerunMovement(){
+	self clientfield::set_to_player("set_freerun", 1);
+
+	self waittill("freerun_done");
+
+    self clientfield::set_to_player("set_freerun", 0);
 }
 
 function holdOut1(){
