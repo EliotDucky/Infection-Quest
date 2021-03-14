@@ -4,16 +4,20 @@
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
 #using scripts\shared\util_shared;
+#using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
 
 #insert scripts\shared\shared.gsh;
+#insert scripts\shared\version.gsh;
 
 #namespace zm_hotel_quest;
 
 REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
 
 function __init__(){
+	registerClientfields();
+
 	//init trials
 	//level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
 	level.console_trials = array(&freerun1, &freerun2);
@@ -45,6 +49,10 @@ Freerun Setup:
 	endpoint: trigger_multiple, targetname: "freerun[num]_complete"
 	all chasms: trigger_multiple, targetname: "chasm_trigger"
 */
+
+function registerClientfields(){
+	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
+}
 
 //call on: quest console trig
 function questConsoleInit(){
@@ -154,7 +162,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	self thread freerunTimer(time_limit);
-	level thread freerunMovement();
+	self thread freerunMovement();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
@@ -201,35 +209,14 @@ function freerunTimer(limit){
 	self notify("freerun_done"); 
 }
 
-//call on level
+//call on player
 //runs with a waittill
 function freerunMovement(){
-	//MOVE TO CSC
-	double_jump_dflt = GetDvarInt("doublejump_enabled");
-	juke_enable_dflt = GetDvarInt("juke_enabled");
-	playerEnergy_dflt = GetDvarInt("playerEnergy_enabled");
-	wallrun_dflt = GetDvarInt("wallrun_enabled");
-	sprintleap_dflt = GetDvarInt("sprintLeap_enabled");
-	traverse_dflt = GetDvarInt("traverse_mode");
-	weaponrest_dflt = GetDvarInt("weaponrest_enabled");
+	self clientfield::set_to_player("set_freerun", 1);
 
-	SetDvar( "doublejump_enabled", 1 );
-    SetDvar( "juke_enabled", 1 );
-    SetDvar( "playerEnergy_enabled", 1 );
-    SetDvar( "wallrun_enabled", 1 );
-    SetDvar( "sprintLeap_enabled", 1 );
-    SetDvar( "traverse_mode", 3 );
-    SetDvar( "weaponrest_enabled", 1 );
+	self waittill("freerun_done");
 
-    level waittill("freerun_done");
-
-    SetDvar( "doublejump_enabled", double_jump_dflt );
-    SetDvar( "juke_enabled", juke_enable_dflt );
-    SetDvar( "playerEnergy_enabled", playerEnergy_dflt );
-    SetDvar( "wallrun_enabled", wallrun_dflt );
-    SetDvar( "sprintLeap_enabled", sprintleap_dflt );
-    SetDvar( "traverse_mode", traverse_dflt );
-    SetDvar( "weaponrest_enabled", weaponrest_dflt );
+    self clientfield::set_to_player("set_freerun", 0);
 }
 
 function holdOut1(){
