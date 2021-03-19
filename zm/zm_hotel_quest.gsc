@@ -8,6 +8,7 @@
 
 #using scripts\zm\_zm_zonemgr;
 #using scripts\zm\_zm_blockers;
+#using scripts\zm\_zm_powerups;
 
 #insert scripts\shared\shared.gsh;
 #define REWARD_DOOR_TIME	1.5
@@ -127,11 +128,25 @@ function doTrial(player){
 	if(won){
 		//array::remove_index(level.console_trials, trial_index);
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
-		//SPAWN PERK POWERUP
+		self spawnReward();
 		//unlock a door stage
 
 		level thread doorUnlock();
 	}
+}
+
+//call on: console trig
+function spawnReward(){
+	reward_point = undefined;
+	//script_origins
+	trgs = GetEntArray(self.target, "targetname");
+	foreach(trg in trgs){
+		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy=="reward_point"){
+			reward_point = trg;
+			break;
+		}
+	}
+	zm_powerups::specific_powerup_drop("free_perk", trg.origin);
 }
 
 //call on: level
