@@ -5,12 +5,15 @@
 #using scripts\shared\array_shared;
 #using scripts\shared\util_shared;
 #using scripts\shared\exploder_shared;
+#using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_powerups;
 
 #insert scripts\shared\shared.gsh;
+#insert scripts\shared\version.gsh;
+
 #define REWARD_DOOR_TIME	1.5
 
 #namespace zm_hotel_quest;
@@ -18,6 +21,8 @@
 REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
 
 function __init__(){
+	registerClientfields();
+
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
 	//level.console_trials = array(&freerun1, &freerun2);
@@ -65,6 +70,10 @@ Each light should be a unique exploder
 		green_light_1
 		etc.
 */
+
+function registerClientfields(){
+	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
+}
 
 //call on: quest console trig
 function questConsoleInit(){
@@ -182,7 +191,8 @@ function freerun1(){
 	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun1_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
-	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
+	checkpoints = GetEntArray("freerun1_checkpoint", "targetname");
+	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints);
 }
 
 //call On: player
@@ -193,11 +203,12 @@ function freerun2(){
 	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun2_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
-	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
+	checkpoints = GetEntArray("freerun2_checkpoint", "targetname");
+	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints);
 }
 
 //call On: the player
-function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
+function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints){
 	//ENABLE FREERUN PLAYER MOVEMENT
 
 	self.freerun_won = false;
@@ -206,24 +217,27 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	//teleport player to start
 	self playerTeleport(start_struct);
 	//if player touches any chasm trig, teleport them back to the start
-	array::thread_all(chasm_trigs, &chasmWaitFor, start_struct, self);
+	self.freerun_checkpoint = start_struct;
+	array::thread_all(chasm_trigs, &chasmWaitFor, self);
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
+	array::thread_all(checkpoints, &checkPointWaitFor);
 	self thread freerunTimer(time_limit);
+	self thread freerunMovement();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
 }
 
 //call On: chasm trig_multiples
-function chasmWaitFor(start_struct, player){
+function chasmWaitFor(player){
 	player endon("freerun_done");
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
 		IPrintLnBold("chasm");
-		p playerTeleport(start_struct);
+		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
 	}
 }
@@ -254,6 +268,24 @@ function freerunTimer(limit){
 	}
 	IPrintLnBold("time limit over");
 	self notify("freerun_done"); 
+}
+
+//call on player
+//runs with a waittill
+function freerunMovement(){
+	self clientfield::set_to_player("set_freerun", 1);
+
+	self waittill("freerun_done");
+
+    self clientfield::set_to_player("set_freerun", 0);
+}
+
+
+//call on: checkpoint trigger multiple
+function checkPointWaitFor(){
+	respawn_point = struct::get(self.target, "targetname");
+	self waittill("trigger", player);
+	player.freerun_checkpoint = respawn_point;
 }
 
 function holdOut1(){
