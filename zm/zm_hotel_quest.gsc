@@ -4,12 +4,17 @@
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
 #using scripts\shared\util_shared;
+#using scripts\shared\exploder_shared;
 #using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
+#using scripts\zm\_zm_blockers;
+#using scripts\zm\_zm_powerups;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
+
+#define REWARD_DOOR_TIME	1.5
 
 #namespace zm_hotel_quest;
 
@@ -19,8 +24,8 @@ function __init__(){
 	registerClientfields();
 
 	//init trials
-	//level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
-	level.console_trials = array(&freerun1, &freerun2);
+	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
+	//level.console_trials = array(&freerun1, &freerun2);
 
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
@@ -29,7 +34,12 @@ function __init__(){
 	//waitfor power
 	wait(0.05);
 	level flag::wait_till("power_on");
+	wait(0.05);
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
+	wait(0.05);
+	for(i = 0; i < 4; i++){
+		exploder::exploder("red_light_"+i);
+	}
 
 	//enable zones for trials
 	zm_zonemgr::zone_init("trial_zone");
@@ -48,6 +58,17 @@ Freerun Setup:
 	start point: script_origin, targetname: "freerun[num]" (e.g. "freerun1")
 	endpoint: trigger_multiple, targetname: "freerun[num]_complete"
 	all chasms: trigger_multiple, targetname: "chasm_trigger"
+
+Reward Door:
+Each light should be a unique exploder
+	Red should default to Off
+		red_light_0
+		red_light_1
+		etc.
+	Green should default to Off
+		green_light_0
+		green_light_1
+		etc.
 */
 
 function registerClientfields(){
@@ -116,6 +137,42 @@ function doTrial(player){
 	if(won){
 		//array::remove_index(level.console_trials, trial_index);
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
+		self spawnReward();
+		//unlock a door stage
+
+		level thread doorUnlock();
+	}
+}
+
+//call on: console trig
+function spawnReward(){
+	reward_point = undefined;
+	//script_origins
+	trgs = GetEntArray(self.target, "targetname");
+	foreach(trg in trgs){
+		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy=="reward_point"){
+			reward_point = trg;
+			break;
+		}
+	}
+	zm_powerups::specific_powerup_drop("free_perk", trg.origin);
+}
+
+//call on: level
+function doorUnlock(){
+	if(!isdefined(level.reward_door_stage)){
+		//inits if not existent yet
+		level.reward_door_stage = -1;
+	}
+	level.reward_door_stage ++;
+	i = level.reward_door_stage;
+	exploder::stop_exploder("red_light_"+i);
+	wait(0.05);
+	exploder::exploder("green_light_"+i);
+	if(level.reward_door_stage >= 3){
+
+		reward_door = GetEnt("reward_door", "script_flag");
+		reward_door thread zm_blockers::door_opened(0);
 	}
 }
 
