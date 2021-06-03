@@ -19,3 +19,34 @@
 ## Rewards
 
 ## Holdout
+
+Each holdout island requires:
+
+(example for holdout 1)
+
+- Struct for player to teleport to:
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| classname		| script_struct						|
+| targetname	| holdout1 							|
+
+- Zone volume covering holdout area and zombie spawners:
+
+| Key 					| Value 							|
+| ---------------------:|:--------------------------------- |
+| classname				| info_volume 						|
+| targetname			| holdout1_zone 					|
+| target 				| holdout1_spawners				  	|
+| script_noteworthy 	| player_volume 					|
+
+- Zombie spawn points:
+
+| Key 					| Value 							|
+| ---------------------:|:--------------------------------- |
+| classname				| script_struct						|
+| targetname			| holdout1_spawners					|
+| script_string			| find_flesh **or** receiver_name  	|
+| script_noteworthy 	| riser_location 					|
+
+- Pathnode placed on floor to generate navmesh
