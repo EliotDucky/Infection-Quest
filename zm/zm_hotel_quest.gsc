@@ -8,6 +8,7 @@
 #using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
+#using scripts\zm\_zm_utility;
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_powerups;
 
@@ -16,23 +17,31 @@
 
 #define REWARD_DOOR_TIME	1.5
 
+#define Z_HOLDOUT_HEALTH 2000
+
 #namespace zm_hotel_quest;
 
-REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
+function autoexec __init__system__(){
+	_arr = array("zm_zonemgr");
+	system::register("zm_hotel_quest", &__init__, &__main__, _arr);
+}
 
 function __init__(){
 	registerClientfields();
 
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
-	//level.console_trials = array(&freerun1, &freerun2);
-
+  
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
 
+	
+}
+
+function __main__(){
+	
 	//waitfor power
-	wait(0.05);
 	level flag::wait_till("power_on");
 	wait(0.05);
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
@@ -44,6 +53,13 @@ function __init__(){
 	//enable zones for trials
 	zm_zonemgr::zone_init("trial_zone");
 	zm_zonemgr::enable_zone("trial_zone");
+
+	//enable holdout zones
+	zm_zonemgr::zone_init("holdout1_zone");
+	zm_zonemgr::enable_zone("holdout1_zone");
+
+	//zm_zonemgr::zone_init("holdout2_zone");
+	//zm_zonemgr::enable_zone("houldout2_zone");
 }
 
 /*
@@ -270,14 +286,14 @@ function freerunTimer(limit){
 	self notify("freerun_done"); 
 }
 
-//call on player
+//call On: Player
 //runs with a waittill
 function freerunMovement(){
 	self clientfield::set_to_player("set_freerun", 1);
 
 	self waittill("freerun_done");
 
-    self clientfield::set_to_player("set_freerun", 0);
+  self clientfield::set_to_player("set_freerun", 0);
 }
 
 
@@ -288,14 +304,68 @@ function checkPointWaitFor(){
 	player.freerun_checkpoint = respawn_point;
 }
 
+//Holdout
+
+//Main holdout quest function
+//Call On: the player
+function holdOut(loc_struct, holdout_zone, _time = 90){
+
+	map_struct = Spawn("script_origin", self.origin);
+	map_struct.angles = self.angles;
+
+	//teleport player to loc_struct
+	self playerTeleport(loc_struct);
+
+	//give time to adjust
+	level thread nukeAllZombies();
+	level flag::clear("spawn_zombies");
+	wait(5);
+	level flag::set("spawn_zombies");
+
+	level thread holdOutSpawning(holdout_zone, Z_HOLDOUT_HEALTH);
+	wait(_time);
+	level.holdout_active = false;
+
+	self playerTeleport(map_struct);
+}
+
+//Call On: level
+function holdOutSpawning(holdout_zone, zombie_health = 2000){
+	self endon("disconnect");
+	wait(0.05);
+	level.holdout_active = true;
+	while(level.holdout_active){
+		//level.zombie_total is the num of zombies left to spawn this round
+		if(level.zombie_total <= 20){
+			level.zombie_total = 60;
+		}
+
+		//get zombies in this zone
+
+		all_zombs = GetAIArray( level.zombie_team );
+		foreach(zomb in all_zombs){
+			if(!isdefined(zomb.holdout) && zomb zm_zonemgr::entity_in_zone(holdout_zone)){
+				zomb.no_powerups = true; //doesn't drop powerups
+				zomb.maxhealth = zombie_health;
+				zombie.zombie_move_speed = "sprint";
+				zomb.holdout = true;
+			}
+		}
+		wait(0.05);
+	}
+	//holdout has ended
+	level.zombie_total = 0;
+}
+
 function holdOut1(){
 	IPrintLnBold("holdOut1");
-	wait(10);
+	start_struct = struct::get("holdout1", "targetname");
+	self thread holdOut(start_struct, "holdout1_zone");
 	return true;
 }
 
 function holdOut2(){
-	IPrintLnBold("holdOut1");
+	IPrintLnBold("holdOut2");
 	wait(10);
 	return true;
 }
@@ -304,4 +374,70 @@ function holdOut2(){
 function playerTeleport(ent){
 	self SetOrigin(ent.origin);
 	self SetPlayerAngles(ent.angles);
+}
+
+function nukeAllZombies(){
+	//Copied from Connor
+	a_ai_zombies = GetAITeamArray(level.zombie_team);
+	zombie_marked_to_destroy = [];
+	foreach(ai_zombie in a_ai_zombies)
+	{
+		ai_zombie.no_powerups = 1;
+		ai_zombie.deathpoints_already_given = 1;
+		if(isdefined(ai_zombie.ignore_nuke) && ai_zombie.ignore_nuke)
+		{
+			continue;
+		}
+		if(isdefined(ai_zombie.marked_for_death) && ai_zombie.marked_for_death)
+		{
+			continue;
+		}
+		if(isdefined(ai_zombie.nuke_damage_func))
+		{
+			ai_zombie thread [[ai_zombie.nuke_damage_func]]();
+			continue;
+		}
+		if(zm_utility::is_magic_bullet_shield_enabled(ai_zombie))
+		{
+			continue;
+		}
+		ai_zombie.marked_for_death = 1;
+		ai_zombie.nuked = 1;
+		zombie_marked_to_destroy[zombie_marked_to_destroy.size] = ai_zombie;
+	}
+	foreach(zombie_to_destroy in zombie_marked_to_destroy)
+	{
+		if(!isdefined(zombie_to_destroy))
+		{
+			continue;
+		}
+		if(zm_utility::is_magic_bullet_shield_enabled(zombie_to_destroy))
+		{
+			continue;
+		}
+		zombie_to_destroy DoDamage(zombie_to_destroy.health, zombie_to_destroy.origin);
+		if(!level flag::get("special_round"))
+		{
+			level.zombie_total++;
+		}
+	}
+	corpse_array = GetCorpseArray();
+	for ( i = 0; i < corpse_array.size; i++ )
+	{
+		if ( IsDefined( corpse_array[ i ] ) )
+		{
+			corpse_array[ i ] Delete();
+		}
+	}
+	/*
+	a_ai_zombies = GetAITeamArray(level.zombie_team);
+	foreach(zombie in a_ai_zombies)
+	{
+		zombie.delayAmbientVox = true;
+	}
+	level waittill("flashback_completed");
+	foreach(zombie in a_ai_zombies)
+	{
+		zombie.delayAmbientVox = false;
+	}*/
 }
