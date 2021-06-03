@@ -7,6 +7,7 @@
 - Hintstring will not display until power turned on
 - Will be disabled on all consoles whilst a trial is ongoing
 
+| Key 			| Value 							|
 | -------------:|:--------------------------------- |
 | classname		| trigger_use 						|
 | targetname	| quest_console						|
