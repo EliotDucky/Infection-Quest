@@ -11,7 +11,7 @@
 | -------------:|:--------------------------------- |
 | classname		| trigger_use 						|
 | targetname	| quest_console						|
-| target 		| *reward_struct_targetname* 	  	|
+| target 		| *reward struct targetname* 	  	|
 | script_int 	| *unique integer from 0 upwards* 	|
 
 ## Freerun
