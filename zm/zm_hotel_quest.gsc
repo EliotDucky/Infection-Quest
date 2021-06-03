@@ -4,11 +4,18 @@
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
 #using scripts\shared\util_shared;
+#using scripts\shared\exploder_shared;
+#using scripts\shared\clientfield_shared;
 
 #using scripts\zm\_zm_zonemgr;
 #using scripts\zm\_zm_utility;
+#using scripts\zm\_zm_blockers;
+#using scripts\zm\_zm_powerups;
 
 #insert scripts\shared\shared.gsh;
+#insert scripts\shared\version.gsh;
+
+#define REWARD_DOOR_TIME	1.5
 
 #define Z_HOLDOUT_HEALTH 2000
 
@@ -20,10 +27,11 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
-	//init trials
-	level.console_trials = array(&holdOut1);
-	//level.console_trials = array(&freerun1, &freerun2);
+	registerClientfields();
 
+	//init trials
+	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
+  
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
@@ -35,7 +43,12 @@ function __main__(){
 	
 	//waitfor power
 	level flag::wait_till("power_on");
+	wait(0.05);
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
+	wait(0.05);
+	for(i = 0; i < 4; i++){
+		exploder::exploder("red_light_"+i);
+	}
 
 	//enable zones for trials
 	zm_zonemgr::zone_init("trial_zone");
@@ -61,7 +74,22 @@ Freerun Setup:
 	start point: script_origin, targetname: "freerun[num]" (e.g. "freerun1")
 	endpoint: trigger_multiple, targetname: "freerun[num]_complete"
 	all chasms: trigger_multiple, targetname: "chasm_trigger"
+
+Reward Door:
+Each light should be a unique exploder
+	Red should default to Off
+		red_light_0
+		red_light_1
+		etc.
+	Green should default to Off
+		green_light_0
+		green_light_1
+		etc.
 */
+
+function registerClientfields(){
+	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
+}
 
 //call on: quest console trig
 function questConsoleInit(){
@@ -125,6 +153,42 @@ function doTrial(player){
 	if(won){
 		//array::remove_index(level.console_trials, trial_index);
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
+		self spawnReward();
+		//unlock a door stage
+
+		level thread doorUnlock();
+	}
+}
+
+//call on: console trig
+function spawnReward(){
+	reward_point = undefined;
+	//script_origins
+	trgs = GetEntArray(self.target, "targetname");
+	foreach(trg in trgs){
+		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy=="reward_point"){
+			reward_point = trg;
+			break;
+		}
+	}
+	zm_powerups::specific_powerup_drop("free_perk", trg.origin);
+}
+
+//call on: level
+function doorUnlock(){
+	if(!isdefined(level.reward_door_stage)){
+		//inits if not existent yet
+		level.reward_door_stage = -1;
+	}
+	level.reward_door_stage ++;
+	i = level.reward_door_stage;
+	exploder::stop_exploder("red_light_"+i);
+	wait(0.05);
+	exploder::exploder("green_light_"+i);
+	if(level.reward_door_stage >= 3){
+
+		reward_door = GetEnt("reward_door", "script_flag");
+		reward_door thread zm_blockers::door_opened(0);
 	}
 }
 
@@ -143,7 +207,8 @@ function freerun1(){
 	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun1_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
-	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
+	checkpoints = GetEntArray("freerun1_checkpoint", "targetname");
+	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints);
 }
 
 //call On: player
@@ -154,11 +219,12 @@ function freerun2(){
 	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun2_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
-	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs);
+	checkpoints = GetEntArray("freerun2_checkpoint", "targetname");
+	return self freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints);
 }
 
 //call On: the player
-function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
+function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints){
 	//ENABLE FREERUN PLAYER MOVEMENT
 
 	self.freerun_won = false;
@@ -167,24 +233,27 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs){
 	//teleport player to start
 	self playerTeleport(start_struct);
 	//if player touches any chasm trig, teleport them back to the start
-	array::thread_all(chasm_trigs, &chasmWaitFor, start_struct, self);
+	self.freerun_checkpoint = start_struct;
+	array::thread_all(chasm_trigs, &chasmWaitFor, self);
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
+	array::thread_all(checkpoints, &checkPointWaitFor);
 	self thread freerunTimer(time_limit);
+	self thread freerunMovement();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
 }
 
 //call On: chasm trig_multiples
-function chasmWaitFor(start_struct, player){
+function chasmWaitFor(player){
 	player endon("freerun_done");
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
 		IPrintLnBold("chasm");
-		p playerTeleport(start_struct);
+		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
 	}
 }
@@ -215,6 +284,24 @@ function freerunTimer(limit){
 	}
 	IPrintLnBold("time limit over");
 	self notify("freerun_done"); 
+}
+
+//call On: Player
+//runs with a waittill
+function freerunMovement(){
+	self clientfield::set_to_player("set_freerun", 1);
+
+	self waittill("freerun_done");
+
+  self clientfield::set_to_player("set_freerun", 0);
+}
+
+
+//call on: checkpoint trigger multiple
+function checkPointWaitFor(){
+	respawn_point = struct::get(self.target, "targetname");
+	self waittill("trigger", player);
+	player.freerun_checkpoint = respawn_point;
 }
 
 //Holdout
@@ -270,7 +357,6 @@ function holdOutSpawning(holdout_zone, zombie_health = 2000){
 	level.zombie_total = 0;
 }
 
-//call On: Player
 function holdOut1(){
 	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout1", "targetname");
