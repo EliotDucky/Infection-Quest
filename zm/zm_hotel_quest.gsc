@@ -360,13 +360,15 @@ function holdOutSpawning(holdout_zone, zombie_health = 2000){
 function holdOut1(){
 	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout1", "targetname");
-	self thread holdOut(start_struct, "holdout1_zone");
+	self holdOut(start_struct, "holdout1_zone");
 	return true;
 }
 
 function holdOut2(){
 	IPrintLnBold("holdOut2");
-	wait(10);
+	IPrintLnBold("holdOut1");
+	start_struct = struct::get("holdout2", "targetname");
+	self holdOut(start_struct, "holdout2_zone");
 	return true;
 }
 
