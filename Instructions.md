@@ -68,14 +68,14 @@ and a struct placed in the ground for teleporting back to if they fall into the 
 
 - Exploders (example for light 0)
 
-	- Red Light
+Red Light
 
 | Key 			| Value 							|
 | -------------:|:--------------------------------- |
 | name 			| red_light_0						|
 | default_state | On								|
 
-	- Green Light (yes, this should be on - it is turned off through script)
+Green Light (yes, this should be on - it is turned off through script)
 
 | Key 			| Value 							|
 | -------------:|:--------------------------------- |
@@ -84,7 +84,7 @@ and a struct placed in the ground for teleporting back to if they fall into the 
 
 - Reward door.
 
-	- Setup a door trigger outside of the playspace.
+Setup a door trigger outside of the playspace.
 
 | Key 			| Value 							|
 | -------------:|:--------------------------------- |
@@ -93,7 +93,7 @@ and a struct placed in the ground for teleporting back to if they fall into the 
 | script_flag	| reward_door						|
 | target		| reward_door 						|
 
-	- Setup model or brush how you would a normal door,
+Setup model or brush how you would a normal door,
 use clips as you would in a normal door, (example):
 
 | Key 			| Value 							|
