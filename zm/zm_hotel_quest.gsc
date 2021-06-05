@@ -293,7 +293,7 @@ function freerunMovement(){
 
 	self waittill("freerun_done");
 
-  self clientfield::set_to_player("set_freerun", 0);
+	self clientfield::set_to_player("set_freerun", 0);
 }
 
 
@@ -315,6 +315,9 @@ function holdOut(loc_struct, holdout_zone, _time = 90){
 
 	//teleport player to loc_struct
 	self playerTeleport(loc_struct);
+
+	//freerun movement
+	self thread freerunMovement();
 
 	//give time to adjust
 	level thread nukeAllZombies();
