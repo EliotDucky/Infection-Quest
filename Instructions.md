@@ -11,7 +11,7 @@
 | -------------:|:--------------------------------- |
 | classname		| trigger_use 						|
 | targetname	| quest_console						|
-| target 		| *reward struct targetname* 	  	|
+| target 		| *reward origin targetname* 	  	|
 | script_int 	| *unique integer from 0 upwards* 	|
 
 ## Freerun
@@ -66,7 +66,50 @@ and a struct placed in the ground for teleporting back to if they fall into the 
 
 ## Rewards
 
+- Exploders (example for light 0)
 
+-- Red Light
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| name 			| red_light_0						|
+| default_state | On								|
+
+-- Green Light (yes, this should be on - it is turned off through script)
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| name 			| green_light_0						|
+| default_state | On								|
+
+- Reward door.
+
+-- Setup a door trigger outside of the playspace.
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| classname		| trigger_use						|
+| targetname	| zombie_door 						|
+| script_flag	| reward_door						|
+| target		| reward_door 						|
+
+-- Setup model or brush how you would a normal door,
+use clips as you would in a normal door, (example):
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| classname		| script_brushmodel					|
+| targetname	| reward_door 						|
+| script_string	| move								|
+| script_vector	| 0 0 -100 							|
+
+- Perk drop rewards
+
+| Key 				| Value 							|
+| -----------------:|:--------------------------------- |
+| classname			| script_origin						|
+| targetname		| *unique name targeted by console* |
+| script_noteworthy	| reward_point						|
 
 ## Holdout
 
