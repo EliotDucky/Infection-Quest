@@ -35,8 +35,6 @@ function __init__(){
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
-
-	
 }
 
 function __main__(){
@@ -138,17 +136,26 @@ function unlock(){
 //returns: true if beaten, false if failed
 function doTrial(player){
 
+	//stop zombie spawns
+	level thread nukeAllZombies();
+	level flag::clear("spawn_zombies");
+	//later set to respawn if not solo or in holdout function
+
+	//PLAYER ANIM
+	
 	//IF NOT SOLO
 	if(true){
+		level thread respawnZAfterTime(5);
 		self thread zombiesTargetConsole();
-	}else{
-		//despawn all zombies and stop them spawning
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
 	won = player [[level.console_trials[trial_index]]]();
 	wait(0.05);
 	self zombieUnTargetConsole();
+	//stop zombie spawns
+	level thread nukeAllZombies();
+	level flag::clear("spawn_zombies");
 
 	if(won){
 		//array::remove_index(level.console_trials, trial_index);
@@ -158,6 +165,14 @@ function doTrial(player){
 
 		level thread doorUnlock();
 	}
+
+	level thread respawnZAfterTime(5);
+	return won;
+}
+
+function private respawnZAfterTime(time = 5){
+	wait(time);
+	level flag::set("spawn_zombies");
 }
 
 //call on: console trig
@@ -319,11 +334,7 @@ function holdOut(loc_struct, holdout_zone, _time = 90){
 	//freerun movement
 	self thread freerunMovement();
 
-	//give time to adjust
-	level thread nukeAllZombies();
-	level flag::clear("spawn_zombies");
-	wait(5);
-	level flag::set("spawn_zombies");
+	level thread respawnZAfterTime(0.05);
 
 	level thread holdOutSpawning(holdout_zone, Z_HOLDOUT_HEALTH);
 	wait(_time);
