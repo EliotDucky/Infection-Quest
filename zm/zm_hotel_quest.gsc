@@ -339,6 +339,7 @@ function holdOut(loc_struct, holdout_zone, _time = 90){
 	level thread holdOutSpawning(holdout_zone, Z_HOLDOUT_HEALTH);
 	wait(_time);
 	level.holdout_active = false;
+	self notify("freerun_done");
 
 	self playerTeleport(map_struct);
 }
