@@ -17,7 +17,6 @@
 #insert scripts\shared\version.gsh;
 
 #define REWARD_DOOR_TIME	1.5
-
 #define Z_HOLDOUT_HEALTH 2000
 
 #namespace zm_hotel_quest;
@@ -57,8 +56,8 @@ function __main__(){
 	zm_zonemgr::zone_init("holdout1_zone");
 	zm_zonemgr::enable_zone("holdout1_zone");
 
-	//zm_zonemgr::zone_init("holdout2_zone");
-	//zm_zonemgr::enable_zone("houldout2_zone");
+	zm_zonemgr::zone_init("holdout2_zone");
+	zm_zonemgr::enable_zone("houldout2_zone");
 }
 
 /*
