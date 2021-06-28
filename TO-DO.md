@@ -1,0 +1,8 @@
+- Stop spam of trial machine, only one player
+- Kill momentum of player after chasm
+- ~~Use zone_mgr to make holdout zombs sprint~~
+	- Holdout zombies now sprint
+- ~~Use volumes of targetname "no_powerups" to stop powerup spawning (already setup in zm_spawner)~~
+	- Powerups are now disabled when holdout spawning
+- Spawn drops at script_origins in holdout
+- End of round nuke/spawn handling

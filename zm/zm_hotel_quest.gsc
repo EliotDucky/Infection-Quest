@@ -11,6 +11,7 @@
 #using scripts\zm\_zm_utility;
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_powerups;
+#using scripts\zm\_zm_spawner;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
@@ -97,6 +98,8 @@ function questConsoleInit(){
 
 //call on: quest console trig
 function questConsoleWaitFor(){
+	self notify("not_waiting");
+	self endon("not_waiting");
 	self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 	self.waiting = true;
 	while(self.waiting){
@@ -120,6 +123,7 @@ function temporaryLock(exception){
 	//exception is the console which has just been activated
 	if(!(self == exception || self.complete)){
 		self.waiting = false;
+		//self notify("not_waiting");
 		self SetHintString("This console is locked");
 	}
 }
@@ -129,6 +133,7 @@ function unlock(){
 	if(!self.complete){
 		self.waiting = true;
 		self SetHintString("Press ^3[{+activate}]^7 to begin trial");
+		//self thread questConsoleWaitFor();
 	}
 }
 
@@ -147,6 +152,7 @@ function doTrial(player){
 	if(true){
 		level thread respawnZAfterTime(5);
 		self thread zombiesTargetConsole();
+		level thread holdOutSpawning();
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
@@ -323,7 +329,7 @@ function checkPointWaitFor(){
 
 //Main holdout quest function
 //Call On: the player
-function holdOut(loc_struct, holdout_zone, _time = 90){
+function holdOut(loc_struct, _time = 90){
 
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
@@ -336,7 +342,7 @@ function holdOut(loc_struct, holdout_zone, _time = 90){
 
 	level thread respawnZAfterTime(0.05);
 
-	level thread holdOutSpawning(holdout_zone, Z_HOLDOUT_HEALTH);
+	//level thread holdOutSpawning(); ONLY ENABLE ON SOLO
 	wait(_time);
 	level.holdout_active = false;
 	self notify("freerun_done");
@@ -344,46 +350,53 @@ function holdOut(loc_struct, holdout_zone, _time = 90){
 	self playerTeleport(map_struct);
 }
 
+//Use for any defend sequence, not just the holdout
 //Call On: level
-function holdOutSpawning(holdout_zone, zombie_health = 2000){
+function holdOutSpawning(){
+	//only allow one of these to run at once
+	self notify("holdout_spawning");
+	self endon("holdout_spawning");
 	self endon("disconnect");
 	wait(0.05);
+	IPrintLnBold("SPAWNING");
 	level.holdout_active = true;
+	level.no_powerups = true; //turn powerups off
+	IPrintLnBold(level.zombie_health); //check it is defined already
+	stnd_z_health = level.zombie_health; //store the standard zombie health
+	level.zombie_health = Z_HOLDOUT_HEALTH; //max health of new zombies spawning
+	stnd_z_speed = level.zombie_move_speed; //store the standard move speed
+	level.zombie_move_speed = 100; //71+ is sprint
 	while(level.holdout_active){
 		//level.zombie_total is the num of zombies left to spawn this round
-		if(level.zombie_total <= 20){
-			level.zombie_total = 60;
+		if(level.zombie_total <= 30){
+			level.zombie_total = 40;
 		}
-
-		//get zombies in this zone
-
-		all_zombs = GetAIArray( level.zombie_team );
-		foreach(zomb in all_zombs){
-			if(!isdefined(zomb.holdout) && zomb zm_zonemgr::entity_in_zone(holdout_zone)){
-				zomb.no_powerups = true; //doesn't drop powerups
-				zomb.maxhealth = zombie_health;
-				zombie.zombie_move_speed = "sprint";
-				zomb.holdout = true;
-			}
-		}
-		wait(0.05);
+		IPrintLn("spawn queue: "+level.zombie_total);
+		wait(2); //no need to wait a frame, can get better performance
 	}
 	//holdout has ended
 	level.zombie_total = 0;
+	level.no_powerups = false; //re-enable powerups
+	level.zombie_health = stnd_z_health; //reset zombie health to pre-holdout
+	//round change shouldn't have happened
+	level.zombie_move_speed = stnd_z_speed; //reset zombie move speed
 }
 
 function holdOut1(){
 	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout1", "targetname");
-	self holdOut(start_struct, "holdout1_zone");
+	level.holdout_zone = "holdout1_zone";
+	self holdOut(start_struct);
+	level.holdout_zone = undefined;
 	return true;
 }
 
 function holdOut2(){
 	IPrintLnBold("holdOut2");
-	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout2", "targetname");
-	self holdOut(start_struct, "holdout2_zone");
+	level.holdout_zone = "holdout2_zone";
+	self holdOut(start_struct);
+	level.holdout_zone = undefined;
 	return true;
 }
 
