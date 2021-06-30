@@ -125,6 +125,7 @@ Each holdout island requires:
 | targetname	| holdout1 							|
 | origin		| *location to teleport player to* 	|
 | angles 		| *direction for player to face* 	|
+| target 		| holdout1_powerups 				|
 
 - Zone volume covering holdout area and zombie spawners:
 
@@ -145,3 +146,17 @@ Each holdout island requires:
 | script_noteworthy 	| riser_location 					|
 
 - Pathnode placed on floor to generate navmesh
+
+- Script_origins placed where max ammos or other drops should spawn periodically
+
+Remember that powerups spawn ~56 units above where they're told to
+
+
+| Key 					| Value 							|
+| ---------------------:|:--------------------------------- |
+| classname				| script_origin						|
+| targetname			| holdout1_powerups					|
+| origin				| location to spawn powerup			|
+
+- Define zombie health during the holdout at the top of the script (for now)
+	- will be in a GSH file soon

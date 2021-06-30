@@ -339,6 +339,14 @@ function holdOut(loc_struct, _time = 90){
 	//freerun movement
 	self thread freerunMovement();
 
+	//max ammo spawning
+	spawn_times = [];
+	//CHANGE THIS INTERVAL, SO SMALL FOR TESTING ONLY
+	for(pwrup_time = 20; pwrup_time < _time; pwrup_time += 20){
+		array::add(spawn_times, pwrup_time);
+	}
+	loc_struct thread holdoutPowerupDrops("full_ammo", spawn_times);
+
 	level thread respawnZAfterTime(0.05);
 
 	//level thread holdOutSpawning(); ONLY ENABLE ON SOLO
@@ -381,12 +389,25 @@ function holdOutSpawning(){
 	level.zombie_move_speed = stnd_z_speed; //reset zombie move speed
 }
 
+//Thread
+//Call On: loc struct
+function holdoutPowerupDrops(powerup, times_to_spawn){
+	points = GetEntArray(self.target, "targetname");
+	time = 0.0;
+	foreach(spawn_time in times_to_spawn){
+		wait(spawn_time - time);
+		time += spawn_time;
+		IPrintLnBold(time);
+		//spawn powerup
+		point = array::random(points);
+		zm_powerups::specific_powerup_drop(powerup, point.origin);
+	}
+}
+
 function holdOut1(){
 	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout1", "targetname");
-	level.holdout_zone = "holdout1_zone";
 	self holdOut(start_struct);
-	level.holdout_zone = undefined;
 	return true;
 }
 
@@ -398,6 +419,8 @@ function holdOut2(){
 	level.holdout_zone = undefined;
 	return true;
 }
+
+
 
 //Call On: Player
 function playerTeleport(ent){
