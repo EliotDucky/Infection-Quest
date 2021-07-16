@@ -148,16 +148,19 @@ function doTrial(player){
 	//PLAYER ANIM
 	
 	//IF NOT SOLO
+	pois = [];
 	if(true){
 		level thread respawnZAfterTime(5);
-		self thread zombiesTargetConsole();
+		pois = self thread zombiesTargetConsole();
 		level thread holdOutSpawning();
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
 	won = player [[level.console_trials[trial_index]]]();
 	wait(0.05);
-	self zombieUnTargetConsole();
+	foreach(poi in pois){
+		poi zombieUnTargetConsole();
+	}
 	//stop zombie spawns
 	level thread nukeAllZombies();
 	level flag::clear("spawn_zombies");
@@ -212,15 +215,22 @@ function doorUnlock(){
 	}
 }
 
-function zombiesTargetConsole(attractor_dist, num_attractors, poi_value, attract_dist_diff){
-	self zm_utility::create_zombie_point_of_interest(attractor_dist, num_attractors, poi_value);
-	self.attract_to_origin = true;
-	self thread zm_utility::create_zombie_point_of_interest_attractor_positions( 4, attract_dist_diff );
-	self thread zm_utility::wait_for_attractor_positions_complete();
-	IPrintLnBold("targeting");
+//call on: console trig
+function zombiesTargetConsole(){
+	points = GetEntArray(self.target, "targetname");
+	for(i = 0; i<points.size; i++){
+		if (!(isdefined(points[i].script_noteworthy) && points[i].script_noteworthy == "poi")){
+			array::remove_index(points, i);
+		}
+	}
+	foreach(point in points){
+		point zm_utility::create_zombie_point_of_interest(10000);
+		point.attract_to_origin = true;
+	}
+	return points;
 }
 
-//call on: console trigger
+//call on: console trigger point of interest
 function zombieUnTargetConsole(){
 	self zm_utility::deactivate_zombie_point_of_interest();
 }
