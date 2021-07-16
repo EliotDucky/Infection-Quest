@@ -70,7 +70,8 @@ function main()
 	//Setup the levels Zombie Zone Volumes
 	level.zones = [];
 	level.zone_manager_init_func =&usermap_test_zone_init;
-	init_zones[0] = "start_zone";
+	//init_zones[0] = "start_zone";
+	init_zones = Array("start_zone", "holdout1_zone", "holdout2_zone");
 	level thread zm_zonemgr::manage_zones( init_zones );
 
 	level.pathdist_type = PATHDIST_ORIGINAL;
