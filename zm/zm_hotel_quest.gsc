@@ -359,11 +359,12 @@ function holdOut(loc_struct, _time = 90){
 	self thread freerunMovement();
 
 	//max ammo spawning
-	spawn_times = [];
+	spawn_times = array(20, 40, 60);
 	//CHANGE THIS INTERVAL, SO SMALL FOR TESTING ONLY
+	/*
 	for(pwrup_time = 20; pwrup_time < _time; pwrup_time += 20){
 		array::add(spawn_times, pwrup_time);
-	}
+	}*/
 	loc_struct thread holdoutPowerupDrops("full_ammo", spawn_times);
 
 	level thread respawnZAfterTime(0.05);
@@ -415,7 +416,7 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 	time = 0.0;
 	foreach(spawn_time in times_to_spawn){
 		wait(spawn_time - time);
-		time += spawn_time;
+		time = spawn_time;
 		IPrintLnBold(time);
 		//spawn powerup
 		point = array::random(points);
