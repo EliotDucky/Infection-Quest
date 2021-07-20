@@ -14,6 +14,7 @@ function __init__(){
 
 function registerClientfields(){
 	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int", &setFreerunMovement, 0, 0);
+	clientfield::register("toplayer", "set_developer", VERSION_SHIP, 1, "int", &devMode, 0, 0);
 }
 
 //clientfield: player
@@ -35,5 +36,13 @@ function setFreerunMovement(n_local_client, oldVal, newVal, bNewEnt, bInitialSna
 	    SetDvar( "sprintLeap_enabled", 0 );
 	    SetDvar( "traverse_mode", 2 );
 	    SetDvar( "weaponrest_enabled", 0 );
+	}
+}
+
+function devMode(n_local_client, oldVal, newVal, bNewEnt, bInitialSnap, fieldName, bWasTimeJump){
+	if(newVal == 1){
+		SetDvar("developer", 2);
+	}else if(newVal == 0){
+		SetDvar("developer", 0);
 	}
 }
