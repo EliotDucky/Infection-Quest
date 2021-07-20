@@ -168,6 +168,6 @@ Remember that powerups spawn ~56 units above where they're told to
 | Key 					| Value 								|
 | ---------------------:|:------------------------------------- |
 | classname				| script_origin							|
-| targetname			| *same as target of console trigger* 	|				|
+| targetname			| *same as target of console trigger* 	|
 | origin				| location to attract zombies to		|
 | script_noteworthy		| poi									|

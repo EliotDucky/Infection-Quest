@@ -16,8 +16,7 @@
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
-#define REWARD_DOOR_TIME	1.5
-#define Z_HOLDOUT_HEALTH 2000
+#insert scripts\zm\zm_hotel_quest.gsh;
 
 #namespace zm_hotel_quest;
 
@@ -224,7 +223,7 @@ function zombiesTargetConsole(){
 		}
 	}
 	foreach(point in points){
-		point zm_utility::create_zombie_point_of_interest(10000);
+		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
 	}
 	return points;
