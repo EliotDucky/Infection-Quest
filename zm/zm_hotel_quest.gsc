@@ -16,8 +16,7 @@
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
-#define REWARD_DOOR_TIME	1.5
-#define Z_HOLDOUT_HEALTH 2000
+#insert scripts\zm\zm_hotel_quest.gsh;
 
 #namespace zm_hotel_quest;
 
@@ -148,16 +147,19 @@ function doTrial(player){
 	//PLAYER ANIM
 	
 	//IF NOT SOLO
+	pois = [];
 	if(true){
 		level thread respawnZAfterTime(5);
-		self thread zombiesTargetConsole();
+		pois = self thread zombiesTargetConsole();
 		level thread holdOutSpawning();
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
 	won = player [[level.console_trials[trial_index]]]();
 	wait(0.05);
-	self zombieUnTargetConsole();
+	foreach(poi in pois){
+		poi zombieUnTargetConsole();
+	}
 	//stop zombie spawns
 	level thread nukeAllZombies();
 	level flag::clear("spawn_zombies");
@@ -212,11 +214,24 @@ function doorUnlock(){
 	}
 }
 
+//call on: console trig
 function zombiesTargetConsole(){
+	points = GetEntArray(self.target, "targetname");
+	for(i = 0; i<points.size; i++){
+		if (!(isdefined(points[i].script_noteworthy) && points[i].script_noteworthy == "poi")){
+			array::remove_index(points, i);
+		}
+	}
+	foreach(point in points){
+		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
+		point.attract_to_origin = true;
+	}
+	return points;
 }
 
-//call on: console trigger
+//call on: console trigger point of interest
 function zombieUnTargetConsole(){
+	self zm_utility::deactivate_zombie_point_of_interest();
 }
 
 //call On: player

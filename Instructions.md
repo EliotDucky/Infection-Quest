@@ -160,3 +160,14 @@ Remember that powerups spawn ~56 units above where they're told to
 
 - Define zombie health during the holdout at the top of the script (for now)
 	- will be in a GSH file soon
+
+## Console Defences
+
+- To attract zombies to the console, place as many script_origins as desired around it
+
+| Key 					| Value 								|
+| ---------------------:|:------------------------------------- |
+| classname				| script_origin							|
+| targetname			| *same as target of console trigger* 	|
+| origin				| location to attract zombies to		|
+| script_noteworthy		| poi									|
