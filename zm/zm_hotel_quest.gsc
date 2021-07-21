@@ -57,9 +57,6 @@ function __main__(){
 
 	zm_zonemgr::zone_init("holdout2_zone");
 	zm_zonemgr::enable_zone("houldout2_zone");
-
-	clientfield::set_to_player("set_developer", 1); //puts dev 2 on
-	SetDvar("developer", 2);
 }
 
 /*
@@ -89,7 +86,6 @@ Each light should be a unique exploder
 
 function registerClientfields(){
 	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
-	clientfield::register("toplayer", "set_developer", VERSION_SHIP, 1, "int");
 }
 
 //call on: quest console trig
@@ -104,6 +100,7 @@ function questConsoleWaitFor(){
 	self endon("not_waiting");
 	self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 	self.waiting = true;
+	self.complete = false;
 	while(self.waiting){
 		self waittill("trigger", player);
 		if(self.waiting){ //check to make sure it is still waiting
