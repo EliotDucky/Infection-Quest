@@ -26,6 +26,7 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
+	setServerMovement();
 	registerClientfields();
 
 	//init trials
@@ -86,6 +87,16 @@ Each light should be a unique exploder
 
 function registerClientfields(){
 	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
+}
+
+function setServerMovement(){
+	SetDvar( "doublejump_enabled", 1 );
+	SetDvar( "juke_enabled", 1 );
+	SetDvar( "playerEnergy_enabled", 1 );
+	SetDvar( "wallrun_enabled", 1 );
+	SetDvar( "sprintLeap_enabled", 1 );
+	SetDvar( "traverse_mode", 3 );
+	SetDvar( "weaponrest_enabled", 0 );
 }
 
 //call on: quest console trig

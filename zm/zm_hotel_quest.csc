@@ -13,7 +13,7 @@ function __init__(){
 }
 
 function registerClientfields(){
-	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int", &setFreerunMovement, 0, 0);
+	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int", &setFreerunMovement, 0, 1);
 }
 
 //clientfield: player
@@ -26,7 +26,7 @@ function setFreerunMovement(n_local_client, oldVal, newVal, bNewEnt, bInitialSna
 	    SetDvar( "wallrun_enabled", 1 );
 	    SetDvar( "sprintLeap_enabled", 1 );
 	    SetDvar( "traverse_mode", 3 );
-	    SetDvar( "weaponrest_enabled", 1 );
+	    //SetDvar( "weaponrest_enabled", 1 );
 	}else if(newVal == 0){
 		SetDvar( "doublejump_enabled", 0 );
 	    SetDvar( "juke_enabled", 0 );
