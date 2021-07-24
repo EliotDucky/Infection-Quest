@@ -26,7 +26,6 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
-	setServerMovement();
 	registerClientfields();
 
 	//init trials
@@ -42,6 +41,7 @@ function __main__(){
 	//waitfor power
 	level flag::wait_till("power_on");
 	wait(0.05);
+	setServerMovement();
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
 	wait(0.05);
 	for(i = 0; i < 4; i++){
@@ -201,11 +201,15 @@ function spawnReward(){
 	trgs = GetEntArray(self.target, "targetname");
 	foreach(trg in trgs){
 		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy=="reward_point"){
+			IPrintLnBold("reward point defined");
 			reward_point = trg;
-			break;
+			//break;
 		}
 	}
-	zm_powerups::specific_powerup_drop("free_perk", trg.origin);
+	if(!isdefined(reward_point)){
+		IPrintLnBold("reward point undefined");
+	}
+	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 }
 
 //call on: level
