@@ -12,6 +12,7 @@
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_powerups;
 #using scripts\zm\_zm_spawner;
+#using scripts\zm\_zm_weapons;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
@@ -34,6 +35,7 @@ function __init__(){
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
+	level.weapon_fists = GetWeapon("bare_hands");
 }
 
 function __main__(){
@@ -99,6 +101,8 @@ function setServerMovement(){
 	SetDvar( "weaponrest_enabled", 0 );
 	wait(0.05);
 	foreach(player in GetPlayers()){
+		player clientfield::set_to_player("set_freerun", 1);
+		wait(0.05);
 		player clientfield::set_to_player("set_freerun", 0);
 	}
 }
@@ -295,9 +299,53 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	array::thread_all(checkpoints, &checkPointWaitFor);
 	self thread freerunTimer(time_limit);
 	self thread freerunMovement();
+	self thread freerunLoadout();
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
+}
+
+//call On: player
+function freerunLoadout(){
+	current_weapon = self GetCurrentWeapon();
+	weapons = self GetWeaponsList();
+	weapon_info = [];
+	//index of weapons lines up with weapon info
+	foreach(weapon in weapons){
+		base = zm_weapons::get_nonalternate_weapon(weapon);
+		if(base != weapon){
+			continue;
+		}
+		info = SpawnStruct();
+		info.weapon = weapon;
+		info.clip_size = self GetWeaponAmmoClip(weapon);
+		info.left_clip_size = -1;
+		if(weapon.dualWieldWeapon != level.weaponNone){
+			info.left_clip_size = self GetWeaponAmmoClip(weapon.dualWieldWeapon);
+		}
+		info.stock_size = self GetWeaponAmmoStock(weapon);
+
+		array::add(weapon_info, info);
+		self zm_weapons::weapon_take(weapon);
+	}
+
+	fists = self zm_weapons::weapon_give(level.weapon_fists);
+	self SwitchToWeapon(fists);
+
+	self waittill("freerun_done");
+
+	self zm_weapons::weapon_take(fists);
+
+	foreach(info in weapon_info){
+		wpn = self zm_weapons::weapon_give(info.weapon);
+		self SetWeaponAmmoClip(wpn, info.clip_size);
+		dual_wield = wpn.dualWieldWeapon;
+		if(level.weaponNone != dual_wield && isdefined(info.left_clip_size)){
+			self SetWeaponAmmoClip(dual_wield, info.left_clip_size);
+		}
+		self SetWeaponAmmoStock(wpn, info.stock_size);
+	}
+	self SwitchToWeapon(current_weapon);
 }
 
 //call On: chasm trig_multiples
