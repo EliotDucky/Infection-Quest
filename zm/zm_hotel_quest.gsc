@@ -97,6 +97,10 @@ function setServerMovement(){
 	SetDvar( "sprintLeap_enabled", 1 );
 	SetDvar( "traverse_mode", 3 );
 	SetDvar( "weaponrest_enabled", 0 );
+	wait(0.05);
+	foreach(player in GetPlayers()){
+		player clientfield::set_to_player("set_freerun", 0);
+	}
 }
 
 //call on: quest console trig
