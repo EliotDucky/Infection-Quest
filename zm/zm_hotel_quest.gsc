@@ -60,6 +60,9 @@ function __main__(){
 
 	zm_zonemgr::zone_init("holdout2_zone");
 	zm_zonemgr::enable_zone("houldout2_zone");
+
+	//Override the last valid position client pushing
+	level.last_valid_position_override = &isPlayerAdvancedMovementOn;
 }
 
 /*
@@ -299,14 +302,14 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	array::thread_all(checkpoints, &checkPointWaitFor);
 	self thread freerunTimer(time_limit);
 	self thread freerunMovement();
-	self thread freerunLoadout();
+	self thread freerunLoadout(level.weapon_fists);
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
 	return self.freerun_won;
 }
 
 //call On: player
-function freerunLoadout(){
+function freerunLoadout(replacement_wpn){
 	current_weapon = self GetCurrentWeapon();
 	weapons = self GetWeaponsList();
 	weapon_info = [];
@@ -329,12 +332,12 @@ function freerunLoadout(){
 		self zm_weapons::weapon_take(weapon);
 	}
 
-	fists = self zm_weapons::weapon_give(level.weapon_fists);
-	self SwitchToWeapon(fists);
+	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
+	self SwitchToWeapon(rplc_wpn);
 
 	self waittill("freerun_done");
 
-	self zm_weapons::weapon_take(fists);
+	self zm_weapons::weapon_take(rplc_wpn);
 
 	foreach(info in weapon_info){
 		wpn = self zm_weapons::weapon_give(info.weapon);
@@ -399,6 +402,11 @@ function freerunMovement(){
 	self clientfield::set_to_player("set_freerun", 0);
 }
 
+//call On: player to check movement of
+//returns: bool
+function isPlayerAdvancedMovementOn(){
+	return self clientfield::get_to_player("set_freerun");
+}
 
 //call on: checkpoint trigger multiple
 function checkPointWaitFor(){
@@ -424,12 +432,12 @@ function holdOut(loc_struct, _time = 90){
 
 	//max ammo spawning
 	spawn_times = array(20, 40, 60);
-	//CHANGE THIS INTERVAL, SO SMALL FOR TESTING ONLY
-	/*
-	for(pwrup_time = 20; pwrup_time < _time; pwrup_time += 20){
-		array::add(spawn_times, pwrup_time);
-	}*/
 	loc_struct thread holdoutPowerupDrops("full_ammo", spawn_times);
+
+	//loadout
+	wpn = array::random(HOLDOUT_WPNS);
+	wpn = GetWeapon(wpn);
+	self thread freerunLoadout(wpn);
 
 	level thread respawnZAfterTime(0.05);
 

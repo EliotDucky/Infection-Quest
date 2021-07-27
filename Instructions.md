@@ -158,8 +158,9 @@ Remember that powerups spawn ~56 units above where they're told to
 | targetname			| holdout1_powerups					|
 | origin				| location to spawn powerup			|
 
-- Define zombie health during the holdout at the top of the script (for now)
-	- will be in a GSH file soon
+- Define zombie health during the holdout in the GSH file
+- Create an array of weapons and attachments for the holdout loadouts
+	- one will be selected randomly
 
 ## Console Defences
 
