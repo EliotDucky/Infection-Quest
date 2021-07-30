@@ -29,6 +29,9 @@ function autoexec __init__system__(){
 function __init__(){
 	registerClientfields();
 
+	//Override the last valid position client pushing
+	level.last_valid_position_override = &isPlayerAdvancedMovementOn;
+
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
   
@@ -60,9 +63,6 @@ function __main__(){
 
 	zm_zonemgr::zone_init("holdout2_zone");
 	zm_zonemgr::enable_zone("houldout2_zone");
-
-	//Override the last valid position client pushing
-	level.last_valid_position_override = &isPlayerAdvancedMovementOn;
 }
 
 /*
@@ -395,6 +395,8 @@ function freerunTimer(limit){
 //call On: Player
 //runs with a waittill
 function freerunMovement(){
+	self notify("stop_last_valid_position");
+	wait(0.05);
 	self clientfield::set_to_player("set_freerun", 1);
 
 	self waittill("freerun_done");
@@ -405,7 +407,7 @@ function freerunMovement(){
 //call On: player to check movement of
 //returns: bool
 function isPlayerAdvancedMovementOn(){
-	return self clientfield::get_to_player("set_freerun");
+	return self clientfield::get_to_player("set_freerun") == 1;
 }
 
 //call on: checkpoint trigger multiple
