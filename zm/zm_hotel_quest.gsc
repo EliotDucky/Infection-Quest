@@ -18,6 +18,7 @@
 #insert scripts\shared\version.gsh;
 
 #insert scripts\zm\zm_hotel_quest.gsh;
+#using scripts\zm\zm_powerup_player_ammo;
 
 #namespace zm_hotel_quest;
 
@@ -434,7 +435,7 @@ function holdOut(loc_struct, _time = 90){
 
 	//max ammo spawning
 	spawn_times = array(20, 40, 60);
-	loc_struct thread holdoutPowerupDrops("full_ammo", spawn_times);
+	loc_struct thread holdoutPowerupDrops("player_ammo", spawn_times);
 
 	//loadout
 	wpn = array::random(HOLDOUT_WPNS);
@@ -513,7 +514,6 @@ function holdOut2(){
 	level.holdout_zone = undefined;
 	return true;
 }
-
 
 
 //Call On: Player

@@ -148,6 +148,7 @@ Each holdout island requires:
 - Pathnode placed on floor to generate navmesh
 
 - Script_origins placed where max ammos or other drops should spawn periodically
+- Add Player Ammo scripts to zone
 
 Remember that powerups spawn ~56 units above where they're told to
 

@@ -4,6 +4,8 @@
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
+#using scripts\zm\zm_powerup_player_ammo;
+
 #namespace zm_hotel_quest;
 
 REGISTER_SYSTEM("zm_hotel_quest", &__init__, undefined)
