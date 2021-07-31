@@ -47,7 +47,7 @@ function __main__(){
 	//waitfor power
 	level flag::wait_till("power_on");
 	wait(0.05);
-	setServerMovement();
+	//setServerMovement();
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
 	wait(0.05);
 	for(i = 0; i < 4; i++){
