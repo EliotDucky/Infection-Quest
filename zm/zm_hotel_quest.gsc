@@ -509,9 +509,7 @@ function holdOut1(){
 function holdOut2(){
 	IPrintLnBold("holdOut2");
 	start_struct = struct::get("holdout2", "targetname");
-	level.holdout_zone = "holdout2_zone";
 	self holdOut(start_struct);
-	level.holdout_zone = undefined;
 	return true;
 }
 

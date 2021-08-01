@@ -28,6 +28,9 @@ function setFreerunMovement(n_local_client, oldVal, newVal, bNewEnt, bInitialSna
 	    SetDvar( "wallrun_enabled", 1 );
 	    SetDvar( "sprintLeap_enabled", 1 );
 	    SetDvar( "traverse_mode", 3 );
+	    SetDvar("wallRun_maxTimeMs_zm", 10000);
+		SetDvar("playerEnergy_maxReserve_zm", 200);
+		SetDvar("wallRun_peakTest_zm", 0);
 	    //SetDvar( "weaponrest_enabled", 1 );
 	}else if(newVal == 0){
 		SetDvar( "doublejump_enabled", 0 );
