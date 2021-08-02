@@ -1,8 +1,5 @@
 # Infection/Hotel v3 Easter Egg Quest Script Setup Instructions
 
-- Comment out player_shared.gsc in bo3/zone_source/all/assetlist/core_patch.csv
-- Add player_shared.gsc to zone
-
 ## Consoles
 
 - Trigger to press activate on to iniate a trial
