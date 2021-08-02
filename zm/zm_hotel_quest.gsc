@@ -93,8 +93,6 @@ function setServerMovement(){
 	SetDvar( "playerEnergy_enabled", 1 );
 	SetDvar( "wallrun_enabled", 1 );
 	SetDvar( "sprintLeap_enabled", 1 );
-	SetDvar( "traverse_mode", 3 );
-	SetDvar( "weaponrest_enabled", 0 );
 	foreach(player in GetPlayers()){
 		player AllowDoubleJump(false);
 		player AllowWallRun(false);
@@ -392,12 +390,25 @@ function freerunMovement(){
 	self AllowDoubleJump(true);
 	self AllowWallRun(true);
 	self SetSprintDuration(999);
+	self thread energyMonitor();
 
 	self waittill("freerun_done");
 
 	self AllowDoubleJump(false);
 	self AllowWallRun(false);	
 	self SetSprintDuration(4);
+}
+
+//calls On: Player
+function energyMonitor(){
+	self endon("death");
+	self endon("disconnect");
+	self endon("freerun_done");
+	while(true){
+		if(self IsOnGround() || self IsWallRunning()){
+			self SetDoubleJumpEnergy(200);
+		}
+	}
 }
 
 //call on: checkpoint trigger multiple

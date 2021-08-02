@@ -34,9 +34,6 @@
 //Traps
 #using scripts\zm\_zm_trap_electric;
 
-//Quests
-//#using scripts\zm\zm_hotel_quest;
-
 #using scripts\zm\zm_usermap;
 
 function main()
