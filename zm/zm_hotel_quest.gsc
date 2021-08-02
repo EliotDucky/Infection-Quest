@@ -28,10 +28,6 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
-	registerClientfields();
-
-	//Override the last valid position client pushing
-	level.last_valid_position_override = &isPlayerAdvancedMovementOn;
 
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
@@ -46,8 +42,8 @@ function __main__(){
 	
 	//waitfor power
 	level flag::wait_till("power_on");
+	level thread setServerMovement();
 	wait(0.05);
-	//setServerMovement();
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
 	wait(0.05);
 	for(i = 0; i < 4; i++){
@@ -91,10 +87,6 @@ Each light should be a unique exploder
 		etc.
 */
 
-function registerClientfields(){
-	clientfield::register("toplayer", "set_freerun", VERSION_SHIP, 1, "int");
-}
-
 function setServerMovement(){
 	SetDvar( "doublejump_enabled", 1 );
 	SetDvar( "juke_enabled", 1 );
@@ -103,11 +95,12 @@ function setServerMovement(){
 	SetDvar( "sprintLeap_enabled", 1 );
 	SetDvar( "traverse_mode", 3 );
 	SetDvar( "weaponrest_enabled", 0 );
-	wait(0.05);
 	foreach(player in GetPlayers()){
-		player clientfield::set_to_player("set_freerun", 1);
-		wait(0.05);
-		player clientfield::set_to_player("set_freerun", 0);
+		player AllowDoubleJump(false);
+		player AllowWallRun(false);
+		player SetMoveSpeedScale(1);
+		player SetSprintCooldown(0);
+		player SetSprintDuration(4);
 	}
 }
 
@@ -396,19 +389,15 @@ function freerunTimer(limit){
 //call On: Player
 //runs with a waittill
 function freerunMovement(){
-	self notify("stop_last_valid_position");
-	wait(0.05);
-	self clientfield::set_to_player("set_freerun", 1);
+	self AllowDoubleJump(true);
+	self AllowWallRun(true);
+	self SetSprintDuration(999);
 
 	self waittill("freerun_done");
 
-	self clientfield::set_to_player("set_freerun", 0);
-}
-
-//call On: player to check movement of
-//returns: bool
-function isPlayerAdvancedMovementOn(){
-	return self clientfield::get_to_player("set_freerun") == 1;
+	self AllowDoubleJump(false);
+	self AllowWallRun(false);	
+	self SetSprintDuration(4);
 }
 
 //call on: checkpoint trigger multiple
