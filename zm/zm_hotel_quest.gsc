@@ -408,6 +408,7 @@ function energyMonitor(){
 		if(self IsOnGround() || self IsWallRunning()){
 			self SetDoubleJumpEnergy(200);
 		}
+		wait(0.05);
 	}
 }
 
