@@ -1,0 +1,49 @@
+void <player> SetEntGravityTrajectory(<trajectory>)
+[MANDATORY] <trajectory> 0 = TR_GRAVITY, 1 = TR_MOON_GRAVITY
+CATEGORY:
+CLIENT/SERVER: Server
+SUMMARY: Sets the gravity trajectory type for the entity.
+EXAMPLE: player SetEntGravityTrajectory( 0 )
+
+void <player> SetDoubleJumpEnergy(<energy>)
+[MANDATORY] <energy> % energy to set on the player
+CATEGORY:
+CLIENT/SERVER: Server
+SUMMARY: Sets a double jump energy amount on the player
+EXAMPLE: player SetDoubleJumpEnergy( <energy> )
+
+void <player> SetPlayerGravity(<gravity>)
+[MANDATORY] <gravity> The gravity to set
+CATEGORY:
+CLIENT/SERVER: Server
+SUMMARY: Sets the gravity override value for the player.
+EXAMPLE: player SetPlayerGravity( 600 )
+
+void <player> AllowDoubleJump(<on off>)
+[MANDATORY] <on off>: A boolean. true if the player can double jump, and false otherwise
+CATEGORY: Player
+CLIENT/SERVER: Server
+SUMMARY: Sets whether the player can double jump
+EXAMPLE: player AllowDoubleJump( false )
+
+void <player> AllowWallRun(<on off>)
+[MANDATORY] <on off>: A boolean. true if the player can wallrun, and false otherwise
+CATEGORY: Player
+CLIENT/SERVER: Server
+SUMMARY: Sets whether the player can wall run
+EXAMPLE: player AllowWallRun( false )
+
+void <player> SetSprintCooldown(<duration>)
+[MANDATORY] <duration> The duration to set
+CATEGORY: Player
+CLIENT/SERVER: Server
+SUMMARY: Set the player's sprint cooldown duration
+EXAMPLE: self SetSprintCooldown( 4 )
+
+void <player> SetSprintDuration(<duration>)
+[MANDATORY] <duration> The duration to set
+CATEGORY: Player
+CLIENT/SERVER: Server
+SUMMARY: Set the player's sprint duration
+EXAMPLE: self SetSprintDuration( 4 )
+
