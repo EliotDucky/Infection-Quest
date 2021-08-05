@@ -255,10 +255,8 @@ function zombieUnTargetConsole(){
 
 //call On: player
 function freerun1(){
-	IPrintLnBold("freerun1");
 	time_limit = 120; //seconds
 	start_struct = struct::get("freerun1", "targetname");
-	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun1_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
 	checkpoints = GetEntArray("freerun1_checkpoint", "targetname");
@@ -267,10 +265,8 @@ function freerun1(){
 
 //call On: player
 function freerun2(){
-	IPrintLnBold("freerun2");
 	time_limit = 120; //seconds
 	start_struct = struct::get("freerun2", "targetname");
-	IPrintLnBold(start_struct.origin);
 	completion_trigs = GetEntArray("freerun2_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
 	checkpoints = GetEntArray("freerun2_checkpoint", "targetname");
@@ -350,7 +346,6 @@ function chasmWaitFor(player){
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
-		IPrintLnBold("chasm");
 		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
 	}
@@ -362,9 +357,7 @@ function completionWaitFor(map_struct, player){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
 	self waittill("trigger", p);
-	IPrintLnBold(self.origin + " " +player.origin);
 	player.freerun_won = true;
-	//IPrintLnBold("WON");
 	wait(10);
 	player notify("freerun_done");
 }
@@ -503,14 +496,12 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 }
 
 function holdOut1(){
-	IPrintLnBold("holdOut1");
 	start_struct = struct::get("holdout1", "targetname");
 	self holdOut(start_struct);
 	return true;
 }
 
 function holdOut2(){
-	IPrintLnBold("holdOut2");
 	start_struct = struct::get("holdout2", "targetname");
 	self holdOut(start_struct);
 	return true;
