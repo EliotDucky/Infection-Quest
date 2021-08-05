@@ -200,23 +200,17 @@ function private respawnZAfterTime(time = 5){
 
 //call on: console trig
 function spawnReward(){
-	reward_point = Spawn("script_origin", self.origin);
+	reward_point = undefined;
 	//script_origins
 	points = GetEntArray(self.target, "targetname");
-	IPrintLnBold(points.size);
 	foreach(point in points){
 		if(isdefined(point.script_noteworthy) && point.script_noteworthy=="r"){
-			IPrintLnBold("reward point defined");
-			reward_point.origin = point.origin;
+			reward_point = point;
 			break;
 		}
 	}
-	if(!isdefined(reward_point)){
-		IPrintLnBold("reward point undefined");
-	}
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 	wait(0.05);
-	reward_point Delete();
 }
 
 //call on: level
