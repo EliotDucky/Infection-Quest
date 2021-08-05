@@ -124,7 +124,9 @@ function questConsoleWaitFor(){
 
 			if(self doTrial(player)){
 				self.complete = true;
+				self.waiting = false;
 			}
+			wait(0.05);
 			array::thread_all(level.quest_consoles, &unlock);
 		}
 		
