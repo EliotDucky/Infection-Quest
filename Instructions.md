@@ -103,13 +103,13 @@ use clips as you would in a normal door, (example):
 | script_string	| move								|
 | script_vector	| 0 0 -100 							|
 
-- Perk drop rewards
+- Perk drop rewards with ``script_notworthy: "r"`
 
 | Key 				| Value 							|
 | -----------------:|:--------------------------------- |
 | classname			| script_origin						|
 | targetname		| *unique name targeted by console* |
-| script_noteworthy	| reward_point						|
+| script_noteworthy	| r									|
 
 ## Holdout
 

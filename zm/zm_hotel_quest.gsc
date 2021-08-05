@@ -162,8 +162,9 @@ function doTrial(player){
 	//PLAYER ANIM
 	
 	//IF NOT SOLO
+	solo = GetPlayers().size <= 1;
 	pois = [];
-	if(true){
+	if(!solo){
 		level thread respawnZAfterTime(5);
 		pois = self thread zombiesTargetConsole();
 		level thread holdOutSpawning();
@@ -182,7 +183,7 @@ function doTrial(player){
 	if(won){
 		//array::remove_index(level.console_trials, trial_index);
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
-		self spawnReward();
+		self thread spawnReward();
 		//unlock a door stage
 
 		level thread doorUnlock();
@@ -199,20 +200,23 @@ function private respawnZAfterTime(time = 5){
 
 //call on: console trig
 function spawnReward(){
-	reward_point = undefined;
+	reward_point = Spawn("script_origin", self.origin);
 	//script_origins
-	trgs = GetEntArray(self.target, "targetname");
-	foreach(trg in trgs){
-		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy=="reward_point"){
+	points = GetEntArray(self.target, "targetname");
+	IPrintLnBold(points.size);
+	foreach(point in points){
+		if(isdefined(point.script_noteworthy) && point.script_noteworthy=="r"){
 			IPrintLnBold("reward point defined");
-			reward_point = trg;
-			//break;
+			reward_point.origin = point.origin;
+			break;
 		}
 	}
 	if(!isdefined(reward_point)){
 		IPrintLnBold("reward point undefined");
 	}
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
+	wait(0.05);
+	reward_point Delete();
 }
 
 //call on: level
@@ -442,10 +446,12 @@ function holdOut(loc_struct, _time = 90){
 	wpn = array::random(HOLDOUT_WPNS);
 	wpn = GetWeapon(wpn);
 	self thread freerunLoadout(wpn);
-
-	level thread respawnZAfterTime(0.05);
-
-	//level thread holdOutSpawning(); ONLY ENABLE ON SOLO
+	solo = GetPlayers().size <= 1;
+	if(solo){
+		//do these if not done in the main doTrial function
+		level thread respawnZAfterTime(0.05);
+		level thread holdOutSpawning();
+	}
 	wait(_time);
 	level.holdout_active = false;
 	self notify("freerun_done");
