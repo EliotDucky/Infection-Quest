@@ -428,7 +428,7 @@ function holdOut(loc_struct, _time = 90){
 	self thread freerunMovement();
 
 	//max ammo spawning
-	spawn_times = array(20, 40, 60);
+	spawn_times = HOLDOUT_PWRUP_TIMES;
 	loc_struct thread holdoutPowerupDrops("player_ammo", spawn_times);
 
 	//loadout
@@ -497,13 +497,13 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 
 function holdOut1(){
 	start_struct = struct::get("holdout1", "targetname");
-	self holdOut(start_struct);
+	self holdOut(start_struct, HOLDOUT_TIME);
 	return true;
 }
 
 function holdOut2(){
 	start_struct = struct::get("holdout2", "targetname");
-	self holdOut(start_struct);
+	self holdOut(start_struct, HOLDOUT_TIME);
 	return true;
 }
 
