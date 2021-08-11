@@ -17,8 +17,8 @@
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
-#insert scripts\zm\zm_hotel_quest.gsh;
 #using scripts\zm\zm_powerup_player_ammo;
+#insert scripts\zm\zm_hotel_quest.gsh;
 
 #namespace zm_hotel_quest;
 
@@ -163,7 +163,6 @@ function doTrial(player){
 
 	//PLAYER ANIM
 	
-	//IF NOT SOLO
 	solo = GetPlayers().size <= 1;
 	pois = [];
 	if(!solo){
@@ -179,6 +178,7 @@ function doTrial(player){
 		poi zombieUnTargetConsole();
 	}
 	//stop zombie spawns
+	level.holdout_active = false;
 	level thread nukeAllZombies();
 	level flag::clear("spawn_zombies");
 
