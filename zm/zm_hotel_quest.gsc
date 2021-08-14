@@ -1,5 +1,6 @@
 #using scripts\codescripts\struct;
 
+#using scripts\shared\ai_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
@@ -245,12 +246,49 @@ function zombiesTargetConsole(){
 		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
 	}
+	self thread zombieAttackConsole();
 	return points;
 }
 
 //call on: console trigger point of interest
 function zombieUnTargetConsole(){
 	self zm_utility::deactivate_zombie_point_of_interest();
+	level notify("zombie_attack_console_end");
+}
+
+//call on: console trig
+//based on zm_island_skullweapon_quest.gsc line 435
+function zombieAttackConsole(){
+	level endon("zombie_attack_console_end");
+	while(true){
+		enemies = GetAITeamArray(level.zombie_team);
+		foreach(ai in enemies){
+			b_attack = ai.archetype == "zombie";
+			b_attack &= !IS_TRUE(ai.attacking_console);
+			b_attack &= IsAlive(ai) && !IS_TRUE(ai.aat_turned);
+			b_attack &= DistanceSquared(ai.origin, self.origin) <= 4200;
+			if(b_attack){
+				self thread zombieAttackConsoleAnim(ai);
+			}
+		}
+		wait(0.05);
+	}
+}
+
+//call on: console trig
+function zombieAttackConsoleAnim(ai){
+	level endon("zombie_attack_console_end");
+	attack_anim = "ai_zombie_base_ad_attack_v1";
+	ai ai::set_ignoreall(1);
+	ai LookAtEntity(self);
+	attack_anim_time = GetAnimLength(attack_anim);
+	while(IsAlive(ai)){
+		ai AnimScripted("melee", ai.origin,
+			ai.angles, attack_anim, "normal",
+			undefined, undefined, 0.5, 0.5);
+		//PLAY HIT SOUND
+		wait(attack_anim_time + 1);
+	}
 }
 
 //call On: player
