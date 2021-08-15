@@ -37,6 +37,7 @@ function __init__(){
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
 	level.weapon_fists = GetWeapon("bare_hands");
+	consoleAttackAnims();
 }
 
 function __main__(){
@@ -107,6 +108,40 @@ function setServerMovement(){
 function questConsoleInit(){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
+}
+
+function consoleAttackAnims(){
+	level.console_attack_anims = [];
+	//MAKE DICT. LATER ON FOR DIFFERENT SPEEDS AND GIB STATES
+	archetype = "zombie";
+	move = "";
+	_two = "ad";
+	_type = "attack";
+	index = 4;
+	for(i = 0; i<index; i++){
+		_two = "ad";
+		name = createAnimName(archetype, move, _two, _type, i);
+		array::add(level.console_attack_anims, name);
+		_two = "au";
+		name = createAnimName(archetype, move, _two, _type, i);
+		array::add(level.console_attack_anims, name);
+	}
+}
+
+function private createAnimName(archetype, move, _two, _type, index){
+	archetype = stringies(archetype);
+	move = stringies(move);
+	_two = stringies(_two);
+	_type = stringies(_type);
+	str = "ai_"+archetype+"base_"+move+_two+_type+"v"+index;
+	return str;
+}
+
+function stringies(str){
+	if(str != ""){
+		str += "_";
+	}
+	return str;
 }
 
 //call on: quest console trig
@@ -267,8 +302,9 @@ function zombieAttackConsole(){
 			b_attack = ai.archetype == "zombie";
 			b_attack &= !IS_TRUE(ai.attacking_console);
 			b_attack &= IsAlive(ai) && !IS_TRUE(ai.aat_turned);
-			b_attack &= DistanceSquared(ai.origin, self.origin) <= 4200;
+			b_attack &= DistanceSquared(ai.origin, self.origin) <= CONSOLE_ATTACK_SQ_RAD;
 			if(b_attack){
+				ai.attacking_console = true;
 				self thread zombieAttackConsoleAnim(ai);
 			}
 		}
@@ -279,7 +315,8 @@ function zombieAttackConsole(){
 //call on: console trig
 function zombieAttackConsoleAnim(ai){
 	level endon("zombie_attack_console_end");
-	attack_anim = "ai_zombie_base_ad_attack_v1";
+	attack_anim = randomAttackAnim();
+	IPrintLnBold(attack_anim);
 	ai ai::set_ignoreall(1);
 	ai LookAtEntity(self);
 	attack_anim_time = GetAnimLength(attack_anim);
@@ -290,6 +327,12 @@ function zombieAttackConsoleAnim(ai){
 		//PLAY HIT SOUND
 		wait(attack_anim_time + 1);
 	}
+}
+
+function randomAttackAnim(){
+	//HANDLE CRAWLING ETC. IN HERE
+	//BUT FOR NOW IS ONE ARRAY NOT A DICT.
+	return array::random(level.console_attack_anims);
 }
 
 //call On: player
