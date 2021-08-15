@@ -238,9 +238,10 @@ function zombiesTargetConsole(){
 	points = GetEntArray(self.target, "targetname");
 	for(i = 0; i<points.size; i++){
 		if (!(isdefined(points[i].script_noteworthy) && points[i].script_noteworthy == "poi")){
-			array::remove_index(points, i);
+			ArrayRemoveIndex(points, i, false);
 		}
 	}
+	IPrintLnBold(points.size);
 	foreach(point in points){
 		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
