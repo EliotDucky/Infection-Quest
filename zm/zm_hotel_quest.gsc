@@ -118,7 +118,7 @@ function consoleAttackAnims(){
 	_two = "ad";
 	_type = "attack";
 	index = 4;
-	for(i = 0; i<index; i++){
+	for(i = 1; i<index; i++){
 		_two = "ad";
 		name = createAnimName(archetype, move, _two, _type, i);
 		array::add(level.console_attack_anims, name);
