@@ -112,20 +112,18 @@ function questConsoleInit(){
 
 function consoleAttackAnims(){
 	level.console_attack_anims = [];
-	//MAKE DICT. LATER ON FOR DIFFERENT SPEEDS AND GIB STATES
-	archetype = "zombie";
-	move = "";
-	_two = "ad";
-	_type = "attack";
-	index = 4;
-	for(i = 1; i<index; i++){
-		_two = "ad";
-		name = createAnimName(archetype, move, _two, _type, i);
-		array::add(level.console_attack_anims, name);
-		_two = "au";
-		name = createAnimName(archetype, move, _two, _type, i);
-		array::add(level.console_attack_anims, name);
-	}
+	//Dictionary for different gib and movement states
+	_twos = array("ad", "au");
+	_types = array("attack");
+	level.console_attack_anims["stand"] = createZAnimList("", _twos, _types, 4);
+	level.console_attack_anims["run"] = createZAnimList("run", _twos, _types, 4);
+	level.console_attack_anims["walk"] = createZAnimList("walk", _twos, _types, 4);
+
+	_twos = array("");
+	level.console_attack_anims["crawl"] = createZAnimList("crawl", _twos, _types, 2);
+
+	_twos = array("ad");
+	level.console_attack_anims["fwd"] = createZAnimList("fwd", _twos, _types, 2);
 }
 
 function private createAnimName(archetype, move, _two, _type, index){
@@ -135,6 +133,21 @@ function private createAnimName(archetype, move, _two, _type, index){
 	_type = stringies(_type);
 	str = "ai_"+archetype+"base_"+move+_two+_type+"v"+index;
 	return str;
+}
+
+function private createZAnimList(move, _twos, _types, num_per_move){
+	archetype = "zombie";
+	names = [];
+	num = num_per_move;
+	for(i=1; i<num; i++){
+		foreach(_type in _types){
+			foreach(_two in _twos){
+				name = createAnimName(archetype, move, _two, _type, i);
+				array::add(names, name);
+			}
+		}
+	}
+	return names;
 }
 
 function stringies(str){
@@ -318,7 +331,7 @@ function zombieAttackConsoleAnim(ai){
 	ai ai::set_ignoreall(1);
 	ai LookAtEntity(self);
 	while(IsAlive(ai)){
-		attack_anim = randomAttackAnim();
+		attack_anim = randomAttackAnim(ai);
 		attack_anim_time = GetAnimLength(attack_anim);
 		IPrintLnBold(attack_anim);
 		ai AnimScripted("melee", ai.origin,
@@ -329,10 +342,14 @@ function zombieAttackConsoleAnim(ai){
 	}
 }
 
-function randomAttackAnim(){
-	//HANDLE CRAWLING ETC. IN HERE
-	//BUT FOR NOW IS ONE ARRAY NOT A DICT.
-	return array::random(level.console_attack_anims);
+function randomAttackAnim(ai){
+	_anim = "";
+	move = "stand";
+	if(IS_TRUE(ai.missingLegs)){
+		move = "crawl";
+	}
+
+	return array::random(level.console_attack_anims[move]);
 }
 
 //call On: player
