@@ -315,12 +315,12 @@ function zombieAttackConsole(){
 //call on: console trig
 function zombieAttackConsoleAnim(ai){
 	level endon("zombie_attack_console_end");
-	attack_anim = randomAttackAnim();
-	IPrintLnBold(attack_anim);
 	ai ai::set_ignoreall(1);
 	ai LookAtEntity(self);
-	attack_anim_time = GetAnimLength(attack_anim);
 	while(IsAlive(ai)){
+		attack_anim = randomAttackAnim();
+		attack_anim_time = GetAnimLength(attack_anim);
+		IPrintLnBold(attack_anim);
 		ai AnimScripted("melee", ai.origin,
 			ai.angles, attack_anim, "normal",
 			undefined, undefined, 0.5, 0.5);
