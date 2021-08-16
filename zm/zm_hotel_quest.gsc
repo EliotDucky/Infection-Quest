@@ -329,8 +329,8 @@ function zombieAttackConsole(){
 function zombieAttackConsoleAnim(ai){
 	level endon("zombie_attack_console_end");
 	ai ai::set_ignoreall(1);
-	ai LookAtEntity(self);
 	while(IsAlive(ai)){
+		ai LookAtEntity(self);
 		attack_anim = randomAttackAnim(ai);
 		attack_anim_time = GetAnimLength(attack_anim);
 		IPrintLnBold(attack_anim);
