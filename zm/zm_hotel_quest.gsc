@@ -1,12 +1,12 @@
 #using scripts\codescripts\struct;
 
 #using scripts\shared\ai_shared;
-#using scripts\shared\system_shared;
-#using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
-#using scripts\shared\util_shared;
-#using scripts\shared\exploder_shared;
 #using scripts\shared\clientfield_shared;
+#using scripts\shared\exploder_shared;
+#using scripts\shared\flag_shared;
+#using scripts\shared\system_shared;
+#using scripts\shared\util_shared;
 
 #using scripts\zm\_zm_zonemgr;
 #using scripts\zm\_zm_utility;
@@ -29,6 +29,7 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
+	registerClientFields();
 
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
@@ -45,6 +46,7 @@ function __main__(){
 	//waitfor power
 	level flag::wait_till("power_on");
 	level thread setServerMovement();
+	level thread setClientMovement();
 	wait(0.05);
 	array::thread_all(level.quest_consoles, &questConsoleWaitFor);
 	wait(0.05);
@@ -62,6 +64,10 @@ function __main__(){
 
 	zm_zonemgr::zone_init("holdout2_zone");
 	zm_zonemgr::enable_zone("houldout2_zone");
+}
+
+function registerClientFields(){
+	clientfield::register("world", "client_movement", VERSION_SHIP, 1, "int");
 }
 
 /*
@@ -90,11 +96,11 @@ Each light should be a unique exploder
 */
 
 function setServerMovement(){
-	SetDvar( "doublejump_enabled", 1 );
-	SetDvar( "juke_enabled", 1 );
-	SetDvar( "playerEnergy_enabled", 1 );
-	SetDvar( "wallrun_enabled", 1 );
-	SetDvar( "sprintLeap_enabled", 1 );
+	SetDvar("doublejump_enabled", 1);
+	SetDvar("juke_enabled", 1);
+	SetDvar("playerEnergy_enabled", 1);
+	SetDvar("wallrun_enabled", 1);
+	SetDvar("sprintLeap_enabled", 1);
 	foreach(player in GetPlayers()){
 		player AllowDoubleJump(false);
 		player AllowWallRun(false);
@@ -102,6 +108,10 @@ function setServerMovement(){
 		player SetSprintCooldown(0);
 		player SetSprintDuration(4);
 	}
+}
+
+function setClientMovement(){
+	clientfield::set("client_movement", 1);
 }
 
 //call on: quest console trig
