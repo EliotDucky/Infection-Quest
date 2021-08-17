@@ -1,5 +1,6 @@
 #using scripts\codescripts\struct;
 
+#using scripts\shared\ai_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\flag_shared;
 #using scripts\shared\array_shared;
@@ -36,6 +37,7 @@ function __init__(){
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
 	level.weapon_fists = GetWeapon("bare_hands");
+	consoleAttackAnims();
 }
 
 function __main__(){
@@ -106,6 +108,53 @@ function setServerMovement(){
 function questConsoleInit(){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
+}
+
+function consoleAttackAnims(){
+	level.console_attack_anims = [];
+	//Dictionary for different gib and movement states
+	_twos = array("ad", "au");
+	_types = array("attack");
+	level.console_attack_anims["stand"] = createZAnimList("", _twos, _types, 4);
+	level.console_attack_anims["run"] = createZAnimList("run", _twos, _types, 4);
+	level.console_attack_anims["walk"] = createZAnimList("walk", _twos, _types, 4);
+
+	_twos = array("");
+	level.console_attack_anims["crawl"] = createZAnimList("crawl", _twos, _types, 2);
+
+	_twos = array("ad");
+	level.console_attack_anims["fwd"] = createZAnimList("fwd", _twos, _types, 2);
+}
+
+function private createAnimName(archetype, move, _two, _type, index){
+	archetype = stringies(archetype);
+	move = stringies(move);
+	_two = stringies(_two);
+	_type = stringies(_type);
+	str = "ai_"+archetype+"base_"+move+_two+_type+"v"+index;
+	return str;
+}
+
+function private createZAnimList(move, _twos, _types, num_per_move){
+	archetype = "zombie";
+	names = [];
+	num = num_per_move;
+	for(i=1; i<num; i++){
+		foreach(_type in _types){
+			foreach(_two in _twos){
+				name = createAnimName(archetype, move, _two, _type, i);
+				array::add(names, name);
+			}
+		}
+	}
+	return names;
+}
+
+function stringies(str){
+	if(str != ""){
+		str += "_";
+	}
+	return str;
 }
 
 //call on: quest console trig
@@ -246,12 +295,60 @@ function zombiesTargetConsole(){
 		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
 	}
+	self thread zombieAttackConsole();
 	return points;
 }
 
 //call on: console trigger point of interest
 function zombieUnTargetConsole(){
 	self zm_utility::deactivate_zombie_point_of_interest();
+	level notify("zombie_attack_console_end");
+}
+
+//call on: console trig
+//based on zm_island_skullweapon_quest.gsc line 435
+function zombieAttackConsole(){
+	level endon("zombie_attack_console_end");
+	while(true){
+		enemies = GetAITeamArray(level.zombie_team);
+		foreach(ai in enemies){
+			b_attack = ai.archetype == "zombie";
+			b_attack &= !IS_TRUE(ai.attacking_console);
+			b_attack &= IsAlive(ai) && !IS_TRUE(ai.aat_turned);
+			b_attack &= DistanceSquared(ai.origin, self.origin) <= CONSOLE_ATTACK_SQ_RAD;
+			if(b_attack){
+				ai.attacking_console = true;
+				self thread zombieAttackConsoleAnim(ai);
+			}
+		}
+		wait(0.05);
+	}
+}
+
+//call on: console trig
+function zombieAttackConsoleAnim(ai){
+	level endon("zombie_attack_console_end");
+	ai ai::set_ignoreall(1);
+	while(IsAlive(ai)){
+		ai LookAtEntity(self);
+		attack_anim = randomAttackAnim(ai);
+		attack_anim_time = GetAnimLength(attack_anim);
+		ai AnimScripted("melee", ai.origin,
+			ai.angles, attack_anim, "normal",
+			undefined, undefined, 0.5, 0.5);
+		//PLAY HIT SOUND
+		wait(attack_anim_time + 1);
+	}
+}
+
+function randomAttackAnim(ai){
+	_anim = "";
+	move = "stand";
+	if(IS_TRUE(ai.missingLegs)){
+		move = "crawl";
+	}
+
+	return array::random(level.console_attack_anims[move]);
 }
 
 //call On: player
