@@ -333,7 +333,6 @@ function zombieAttackConsoleAnim(ai){
 		ai LookAtEntity(self);
 		attack_anim = randomAttackAnim(ai);
 		attack_anim_time = GetAnimLength(attack_anim);
-		IPrintLnBold(attack_anim);
 		ai AnimScripted("melee", ai.origin,
 			ai.angles, attack_anim, "normal",
 			undefined, undefined, 0.5, 0.5);
