@@ -329,8 +329,9 @@ function zombieAttackConsole(){
 function zombieAttackConsoleAnim(ai){
 	level endon("zombie_attack_console_end");
 	ai ai::set_ignoreall(1);
+	look_loc = self.origin;
 	while(IsAlive(ai)){
-		ai LookAtEntity(self);
+		ai LookAtPos(look_loc);
 		attack_anim = randomAttackAnim(ai);
 		attack_anim_time = GetAnimLength(attack_anim);
 		ai AnimScripted("melee", ai.origin,
