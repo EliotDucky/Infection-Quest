@@ -230,8 +230,7 @@ function doTrial(player){
 		pois = self thread zombiesTargetConsole(player);
 		level thread holdOutSpawning();
 		defending_players = array::exclude(players, player);
-		obj_str = "Objective: Defend The Console";
-		thread objectiveHUD(obj_str, defending_players);
+		player thread setDefenderHUD(defending_players);
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
@@ -267,6 +266,16 @@ function doTrial(player){
 
 	level thread respawnZAfterTime(5);
 	return won;
+}
+
+//call on: player doing trial
+function setDefenderHUD(players){
+	obj_str = "Objective: Defend The Console";
+	thread objectiveHUD(obj_str, players);
+	wait(5);
+	thread consoleHealthHUD(players);
+	self waittill("freerun_done");
+
 }
 
 function private respawnZAfterTime(time = 5){
@@ -661,6 +670,7 @@ function holdOut2(){
 	return won;
 }
 
+//call on: level
 function objectiveHUD(str, players){
 	txts = [];
 	foreach(player in players){
@@ -693,6 +703,62 @@ function objectiveHUD(str, players){
 	}
 	wait(0.75);
 	foreach(txt in txts){
+		txt Destroy();
+	}
+}
+
+//call on: console trig
+function consoleHealthHUD(players){
+	str = "Console Health: ";
+	//MAKE TXTS A LEVEL.VAR FOR FADING OUT IF CONSOLE BEAT/LOST
+	//MAKE SURE TO DESTROY WHEN THIS HAPPENS
+	level.console_health_txts = [];
+	foreach(player in players){
+		txt = NewClientHudElem(player);
+		//txt = NewHudElem();
+		txt.x = 0;
+		txt.y = 20;
+		txt.alignX = "center";
+		txt.alignY = "top";
+		txt.horzAlign = "center";
+		txt.vertAlign = "top";
+		txt.foreground = 1;
+		txt.fontscale = 4; //4
+		if(level.Splitscreen && !level.hidef){
+			txt.fontscale = 5.5; //5.5
+		}
+		txt.alpha = 0; //MAKE ZERO TO FADE IN
+		txt.color = (1,1,1);
+		txt.inUse = 0; //0
+		txt SetText(str + "^2" + self.health);
+		array::add(level.console_health_txts, txt);
+
+		txt FadeOverTime(0.75);
+		txt.alpha = 1;
+	}
+	wait(0.75);
+	while(self.health > 0){
+		colour = "^2";
+		if(self.health < CONSOLE_HEALTH/2){
+			colour = "^3";
+		}else if(self.health < CONSOLE_HEALTH/4){
+			colour = "^1";
+		}
+		foreach(txt in level.console_health_txts){
+
+			txt SetText(str + colour + self.health);
+		}
+		wait(0.05);
+	}
+}
+
+function removeConsoleHealthHUD(){
+	foreach(txt in level.console_health_txts){
+		txt FadeOverTime(0.75);
+		txt.alpha = 0;
+	}
+	wait(0.75);
+	foreach(txt in level.console_health_txts){
 		txt Destroy();
 	}
 }
