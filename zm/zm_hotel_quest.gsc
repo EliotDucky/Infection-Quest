@@ -235,14 +235,17 @@ function doTrial(player){
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
+	level.freerun_won = false;
 
 	player thread [[level.console_trials[trial_index]]]();
 
 	player waittill("freerun_done");
-	won = player.freerun_won; //freerun naming also carried into holdouts
-	if(isdefined(self.health)){
+	won = level.freerun_won; //freerun naming also carried into holdouts
+	IPrintLnBold(won);
+	if(!solo && isdefined(self.health)){
 		won &= self.health > 0;
 	}
+	IPrintLnBold(won);
 
 	wait(0.05);
 	foreach(poi in pois){
@@ -316,7 +319,7 @@ function consoleTakeDamage(damage, trial_player){
 	IPrintLnBold("Console Health: "+self.health);
 	if(self.health <= 0){
 		trial_player notify("freerun_done");
-		trial_player.freerun_won = false;
+		trial_level.freerun_won = false;
 	}
 }
 
@@ -414,7 +417,7 @@ function freerun2(){
 
 //call On: the player
 function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints){
-	self.freerun_won = false;
+	level.freerun_won = false;
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
 	//teleport player to start
@@ -435,7 +438,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	self thread freerunLoadout(level.weapon_fists);
 	self waittill("freerun_done");
 	self playerTeleport(map_struct);
-	return self.freerun_won;
+	return level.freerun_won;
 }
 
 //call On: player
@@ -499,8 +502,9 @@ function completionWaitFor(map_struct, player){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
 	self waittill("trigger", p);
-	player.freerun_won = true;
-	wait(10);
+	level.freerun_won = true;
+	IPrintLnBold("Freerun Done");
+	wait(0.05);
 	player notify("freerun_done");
 }
 
@@ -508,7 +512,7 @@ function completionWaitFor(map_struct, player){
 function freerunTimer(limit){
 	self endon("freerun_done");
 	t = limit;
-	while(t > 0 && !self.freerun_won){
+	while(t > 0 && !level.freerun_won){
 		wait(0.05);
 		t -= 0.05;
 		if(RandomInt(600) == 1){
@@ -516,6 +520,7 @@ function freerunTimer(limit){
 		}
 	}
 	IPrintLnBold("time limit over");
+	wait(0.05);
 	self notify("freerun_done"); 
 }
 
@@ -587,12 +592,14 @@ function holdOut(loc_struct, _time = 90){
 		level thread respawnZAfterTime(0.05);
 		level thread holdOutSpawning();
 	}
-	util::waittill_any_timeout(_time, "freerun_done");
+	state = self util::waittill_any_ex(_time, "freerun_done");
+	IPrintLnBold(state);
 	level.holdout_active = false;
 	self notify("freerun_done");
 
 	self playerTeleport(map_struct);
-
+	level.freerun_won = state == "timeout";
+	return level.freerun_won;
 }
 
 //Use for any defend sequence, not just the holdout
@@ -644,14 +651,14 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 
 function holdOut1(){
 	start_struct = struct::get("holdout1", "targetname");
-	player.freerun_won = self holdOut(start_struct, HOLDOUT_TIME);
-	return player.freerun_won;
+	won = self holdOut(start_struct, HOLDOUT_TIME);
+	return won;
 }
 
 function holdOut2(){
 	start_struct = struct::get("holdout2", "targetname");
-	self holdOut(start_struct, HOLDOUT_TIME);
-	return true;
+	won = self holdOut(start_struct, HOLDOUT_TIME);
+	return won;
 }
 
 function objectiveHUD(str, players){
