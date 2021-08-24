@@ -225,13 +225,22 @@ function doTrial(player){
 	solo = GetPlayers().size <= 1;
 	pois = [];
 	if(!solo){
+		self thread consoleInitHealth();
 		level thread respawnZAfterTime(5);
-		pois = self thread zombiesTargetConsole();
+		pois = self thread zombiesTargetConsole(player);
 		level thread holdOutSpawning();
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
-	won = player [[level.console_trials[trial_index]]]();
+
+	player thread [[level.console_trials[trial_index]]]();
+
+	player waittill("freerun_done");
+	won = player.freerun_won; //freerun naming also carried into holdouts
+	if(isdefined(self.health)){
+		won &= self.health > 0;
+	}
+
 	wait(0.05);
 	foreach(poi in pois){
 		poi zombieUnTargetConsole();
@@ -293,7 +302,23 @@ function doorUnlock(){
 }
 
 //call on: console trig
-function zombiesTargetConsole(){
+function consoleInitHealth(){
+	self.health = CONSOLE_HEALTH;
+	//DISPLAY HEALTH
+}
+
+//call on: console trig
+function consoleTakeDamage(damage, trial_player){
+	self.health -= damage;
+	IPrintLnBold("Console Health: "+self.health);
+	if(self.health <= 0){
+		trial_player notify("freerun_done");
+		trial_player.freerun_won = false;
+	}
+}
+
+//call on: console trig
+function zombiesTargetConsole(trial_player){
 	points = GetEntArray(self.target, "targetname");
 	for(i = 0; i<points.size; i++){
 		if (!(isdefined(points[i].script_noteworthy) && points[i].script_noteworthy == "poi")){
@@ -305,7 +330,7 @@ function zombiesTargetConsole(){
 		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
 	}
-	self thread zombieAttackConsole();
+	self thread zombieAttackConsole(trial_player);
 	return points;
 }
 
@@ -317,7 +342,7 @@ function zombieUnTargetConsole(){
 
 //call on: console trig
 //based on zm_island_skullweapon_quest.gsc line 435
-function zombieAttackConsole(){
+function zombieAttackConsole(trial_player){
 	level endon("zombie_attack_console_end");
 	while(true){
 		enemies = GetAITeamArray(level.zombie_team);
@@ -328,7 +353,7 @@ function zombieAttackConsole(){
 			b_attack &= DistanceSquared(ai.origin, self.origin) <= CONSOLE_ATTACK_SQ_RAD;
 			if(b_attack){
 				ai.attacking_console = true;
-				self thread zombieAttackConsoleAnim(ai);
+				self thread zombieAttackConsoleAnim(ai, trial_player);
 			}
 		}
 		wait(0.05);
@@ -336,8 +361,9 @@ function zombieAttackConsole(){
 }
 
 //call on: console trig
-function zombieAttackConsoleAnim(ai){
+function zombieAttackConsoleAnim(ai, trial_player){
 	level endon("zombie_attack_console_end");
+	ai endon("death");
 	ai ai::set_ignoreall(1);
 	look_loc = self.origin;
 	while(IsAlive(ai)){
@@ -349,6 +375,7 @@ function zombieAttackConsoleAnim(ai){
 			undefined, undefined, 0.5, 0.5);
 		//PLAY HIT SOUND
 		wait(attack_anim_time + 1);
+		self consoleTakeDamage(Z_CONSOLE_DAMAGE, trial_player);
 	}
 }
 
@@ -384,8 +411,6 @@ function freerun2(){
 
 //call On: the player
 function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkpoints){
-	//ENABLE FREERUN PLAYER MOVEMENT
-
 	self.freerun_won = false;
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
@@ -550,11 +575,12 @@ function holdOut(loc_struct, _time = 90){
 		level thread respawnZAfterTime(0.05);
 		level thread holdOutSpawning();
 	}
-	wait(_time);
+	util::waittill_any_timeout(_time, "freerun_done");
 	level.holdout_active = false;
 	self notify("freerun_done");
 
 	self playerTeleport(map_struct);
+
 }
 
 //Use for any defend sequence, not just the holdout
@@ -606,8 +632,8 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 
 function holdOut1(){
 	start_struct = struct::get("holdout1", "targetname");
-	self holdOut(start_struct, HOLDOUT_TIME);
-	return true;
+	player.freerun_won = self holdOut(start_struct, HOLDOUT_TIME);
+	return player.freerun_won;
 }
 
 function holdOut2(){
