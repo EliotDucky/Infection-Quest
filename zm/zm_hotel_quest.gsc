@@ -221,14 +221,17 @@ function doTrial(player){
 	//later set to respawn if not solo or in holdout function
 
 	//PLAYER ANIM
-	
-	solo = GetPlayers().size <= 1;
+	players = GetPlayers();
+	solo = players.size <= 1;
 	pois = [];
 	if(!solo){
 		self thread consoleInitHealth();
 		level thread respawnZAfterTime(5);
 		pois = self thread zombiesTargetConsole(player);
 		level thread holdOutSpawning();
+		defending_players = array::exclude(players, player);
+		obj_str = "Objective: Defend The Console";
+		thread objectiveHUD(obj_str, defending_players);
 	}
 
 	trial_index = RandomInt(level.console_trials.size);
@@ -416,6 +419,11 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	map_struct.angles = self.angles;
 	//teleport player to start
 	self playerTeleport(start_struct);
+
+	//obj HUD
+	obj_str = "Complete the Course Before the Timer Expires";
+	thread objectiveHUD(obj_str, array(self));
+
 	//if player touches any chasm trig, teleport them back to the start
 	self.freerun_checkpoint = start_struct;
 	array::thread_all(chasm_trigs, &chasmWaitFor, self);
@@ -558,6 +566,10 @@ function holdOut(loc_struct, _time = 90){
 	//teleport player to loc_struct
 	self playerTeleport(loc_struct);
 
+	//obj HUD
+	obj_str = "Objective: Survive with What You're Given";
+	thread objectiveHUD(obj_str, array(self));
+
 	//freerun movement
 	self thread freerunMovement();
 
@@ -642,6 +654,41 @@ function holdOut2(){
 	return true;
 }
 
+function objectiveHUD(str, players){
+	txts = [];
+	foreach(player in players){
+		txt = NewClientHudElem(player);
+		//txt = NewHudElem();
+		txt.x = 0;
+		txt.y = 20;
+		txt.alignX = "center";
+		txt.alignY = "top";
+		txt.horzAlign = "center";
+		txt.vertAlign = "top";
+		txt.foreground = 1;
+		txt.fontscale = 4; //4
+		if(level.Splitscreen && !level.hidef){
+			txt.fontscale = 5.5; //5.5
+		}
+		txt.alpha = 0; //MAKE ZERO TO FADE IN
+		txt.color = (1,1,1);
+		txt.inUse = 0; //0
+		txt SetText(str);
+		array::add(txts, txt);
+
+		txt FadeOverTime(0.75);
+		txt.alpha = 1;
+	}
+	wait(4.25);
+	foreach(txt in txts){
+		txt FadeOverTime(0.75);
+		txt.alpha = 0;
+	}
+	wait(0.75);
+	foreach(txt in txts){
+		txt Destroy();
+	}
+}
 
 //Call On: Player
 function playerTeleport(ent){
