@@ -275,7 +275,7 @@ function setDefenderHUD(players){
 	wait(5);
 	thread consoleHealthHUD(players);
 	self waittill("freerun_done");
-
+	thread removeConsoleHealthHUD();
 }
 
 function private respawnZAfterTime(time = 5){
@@ -432,9 +432,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	//teleport player to start
 	self playerTeleport(start_struct);
 
-	//obj HUD
-	obj_str = "Complete the Course Before the Timer Expires";
-	thread objectiveHUD(obj_str, array(self));
+	self thread freerunTimerInit(time_limit);
 
 	//if player touches any chasm trig, teleport them back to the start
 	self.freerun_checkpoint = start_struct;
@@ -442,7 +440,6 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	//waittill player touches any completion trig
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	array::thread_all(checkpoints, &checkPointWaitFor);
-	self thread freerunTimer(time_limit);
 	self thread freerunMovement();
 	self thread freerunLoadout(level.weapon_fists);
 	self waittill("freerun_done");
@@ -518,19 +515,76 @@ function completionWaitFor(map_struct, player){
 }
 
 //call On: player in freerun
-function freerunTimer(limit){
+function freerunTimer(limit, hud_txt){
 	self endon("freerun_done");
 	t = limit;
+	t = Int(t);
 	while(t > 0 && !level.freerun_won){
-		wait(0.05);
-		t -= 0.05;
-		if(RandomInt(600) == 1){
-			IPrintLnBold("Freerun Time: " + t + " seconds");
-		}
+		wait(1);
+		t -= 1;
+		hud_txt updateFreerunTimerHUD(t, limit);
 	}
 	IPrintLnBold("time limit over");
 	wait(0.05);
-	self notify("freerun_done"); 
+	self notify("freerun_done");
+}
+
+//call on: player in freerun
+//THREAD
+function freerunTimerInit(time_limit){
+	//obj HUD
+	obj_str = "Complete the Course Before the Timer Expires";
+	thread objectiveHUD(obj_str, array(self));
+
+	wait(4.75); //when above starts fading out, fade in timer
+
+	hud_txt = self freerunTimerHUDInit(time_limit); //no thread because wait until faded in
+	freerunTimer(time_limit, hud_txt);
+	//this returns once time is up but wait until notify incase console destroyed
+	self waittill("freerun_done");
+	wait(0.05);
+	removeFreerunTimerHUD(hud_txt);
+}
+
+//call on: player in freerun
+function freerunTimerHUDInit(time_limit){
+	txt = NewClientHudElem(self);
+	txt.x = 0;
+	txt.y = 20;
+	txt.alignX = "center";
+	txt.alignY = "top";
+	txt.horzAlign = "center";
+	txt.vertAlign = "top";
+	txt.foreground = 1;
+	txt.fontscale = 4; //4
+	if(level.Splitscreen && !level.hidef){
+		txt.fontscale = 5.5; //5.5
+	}
+	txt.alpha = 0; //MAKE ZERO TO FADE IN
+	txt.color = (0,1,0);
+	txt.inUse = 0; //0
+	txt SetText(time_limit);
+
+	txt FadeOverTime(0.75);
+	txt.alpha = 1;
+	return txt;
+}
+
+//call on: freerun_timer_HUD
+function updateFreerunTimerHUD(time_remaining, time_limit){
+
+	self SetText(time_remaining);
+	green = time_remaining/time_limit;
+	red = 1 - green;
+	self.color = (red, green, 0);
+}
+
+//call on: freerun_timer_HUD
+function removeFreerunTimerHUD(hud_txt){
+	hud_txt FadeOverTime(0.75);
+	hud_txt.alpha = 0;
+	wait(0.75);
+	hud_txt Destroy();
 }
 
 //call On: Player
@@ -715,7 +769,6 @@ function consoleHealthHUD(players){
 	level.console_health_txts = [];
 	foreach(player in players){
 		txt = NewClientHudElem(player);
-		//txt = NewHudElem();
 		txt.x = 0;
 		txt.y = 20;
 		txt.alignX = "center";
