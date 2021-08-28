@@ -327,8 +327,9 @@ function consoleTakeDamage(damage, trial_player){
 	self.health -= damage;
 	IPrintLnBold("Console Health: "+self.health);
 	if(self.health <= 0){
+		trial_level.freerun_won = false; //before notify to be safe
+		wait(0.05);
 		trial_player notify("freerun_done");
-		trial_level.freerun_won = false;
 	}
 }
 
@@ -432,7 +433,8 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	//teleport player to start
 	self playerTeleport(start_struct);
 
-	self thread freerunTimerInit(time_limit);
+	obj_str = "Complete the Course Before the Timer Expires";
+	self thread freerunTimerInit(time_limit, obj_str, false);
 
 	//if player touches any chasm trig, teleport them back to the start
 	self.freerun_checkpoint = start_struct;
@@ -515,39 +517,39 @@ function completionWaitFor(map_struct, player){
 }
 
 //call On: player in freerun
-function freerunTimer(limit, hud_txt){
+function freerunTimer(limit, hud_txt, b_expiry_good=false){
 	self endon("freerun_done");
 	t = limit;
 	t = Int(t);
 	while(t > 0 && !level.freerun_won){
 		wait(1);
 		t -= 1;
-		hud_txt updateFreerunTimerHUD(t, limit);
+		hud_txt updateFreerunTimerHUD(t, limit, b_expiry_good);
 	}
 	IPrintLnBold("time limit over");
+	level.freerun_won = b_expiry_good;
 	wait(0.05);
 	self notify("freerun_done");
 }
 
 //call on: player in freerun
 //THREAD
-function freerunTimerInit(time_limit){
-	//obj HUD
-	obj_str = "Complete the Course Before the Timer Expires";
+function freerunTimerInit(time_limit, obj_str, b_expiry_good){
+
 	thread objectiveHUD(obj_str, array(self));
 
 	wait(4.75); //when above starts fading out, fade in timer
 
-	hud_txt = self freerunTimerHUDInit(time_limit); //no thread because wait until faded in
-	freerunTimer(time_limit, hud_txt);
+	hud_txt = self freerunTimerHUDInit(time_limit, b_expiry_good); //no thread because wait until faded in
+	self freerunTimer(time_limit, hud_txt, b_expiry_good);
 	//this returns once time is up but wait until notify incase console destroyed
 	self waittill("freerun_done");
-	wait(0.05);
+	//wait(0.05);
 	removeFreerunTimerHUD(hud_txt);
 }
 
 //call on: player in freerun
-function freerunTimerHUDInit(time_limit){
+function freerunTimerHUDInit(time_limit, b_expiry_good=false){
 	txt = NewClientHudElem(self);
 	txt.x = 0;
 	txt.y = 20;
@@ -561,8 +563,10 @@ function freerunTimerHUDInit(time_limit){
 		txt.fontscale = 5.5; //5.5
 	}
 	txt.alpha = 0; //MAKE ZERO TO FADE IN
-	txt.color = (0,1,0);
-	txt.inUse = 0; //0
+	red = Int(b_expiry_good);
+	green = 1 - red;
+	txt.color = (red, green, 0);
+	txt.inUse = 1; //0
 	txt SetText(time_limit);
 
 	txt FadeOverTime(0.75);
@@ -571,10 +575,13 @@ function freerunTimerHUDInit(time_limit){
 }
 
 //call on: freerun_timer_HUD
-function updateFreerunTimerHUD(time_remaining, time_limit){
+function updateFreerunTimerHUD(time_remaining, time_limit, b_expiry_good=false){
 
 	self SetText(time_remaining);
 	green = time_remaining/time_limit;
+	if(b_expiry_good){
+		green = 1 - green;
+	}
 	red = 1 - green;
 	self.color = (red, green, 0);
 }
@@ -636,7 +643,7 @@ function holdOut(loc_struct, _time = 90){
 
 	//obj HUD
 	obj_str = "Objective: Survive with What You're Given";
-	thread objectiveHUD(obj_str, array(self));
+	self thread freerunTimerInit(_time, obj_str, true);
 
 	//freerun movement
 	self thread freerunMovement();
@@ -655,13 +662,12 @@ function holdOut(loc_struct, _time = 90){
 		level thread respawnZAfterTime(0.05);
 		level thread holdOutSpawning();
 	}
-	state = self util::waittill_any_ex(_time, "freerun_done");
-	IPrintLnBold(state);
+	//state = self util::waittill_any_ex(_time, "freerun_done");
+	self waittill("freerun_done");
 	level.holdout_active = false;
-	self notify("freerun_done");
+	//self notify("freerun_done");
 
 	self playerTeleport(map_struct);
-	level.freerun_won = state == "timeout";
 	return level.freerun_won;
 }
 
