@@ -390,8 +390,9 @@ function zombieAttackConsoleAnim(ai, trial_player){
 			ai.angles, attack_anim, "normal",
 			undefined, undefined, 0.5, 0.5);
 		//PLAY HIT SOUND
-		wait(attack_anim_time + 1);
+		wait((attack_anim_time + 1)/2);
 		self consoleTakeDamage(Z_CONSOLE_DAMAGE, trial_player);
+		wait((attack_anim_time + 1)/2);
 	}
 }
 
@@ -445,6 +446,7 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	self thread freerunMovement();
 	self thread freerunLoadout(level.weapon_fists);
 	self waittill("freerun_done");
+	self notify("freerun_done"); //to remove HUD
 	self playerTeleport(map_struct);
 	return level.freerun_won;
 }
@@ -665,7 +667,7 @@ function holdOut(loc_struct, _time = 90){
 	//state = self util::waittill_any_ex(_time, "freerun_done");
 	self waittill("freerun_done");
 	level.holdout_active = false;
-	//self notify("freerun_done");
+	self notify("freerun_done"); //to remove the HUD
 
 	self playerTeleport(map_struct);
 	return level.freerun_won;
