@@ -716,7 +716,8 @@ function holdoutPowerupDrops(powerup, times_to_spawn){
 		IPrintLnBold(time);
 		//spawn powerup
 		point = array::random(points);
-		zm_powerups::specific_powerup_drop(powerup, point.origin);
+		u = undefined;
+		zm_powerups::specific_powerup_drop(powerup, point.origin, u, u, u, u, true);
 	}
 }
 
