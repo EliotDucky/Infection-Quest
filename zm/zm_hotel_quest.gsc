@@ -5,6 +5,7 @@
 #using scripts\shared\clientfield_shared;
 #using scripts\shared\exploder_shared;
 #using scripts\shared\flag_shared;
+#using scripts\shared\hud_util_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
@@ -239,6 +240,7 @@ function doTrial(player){
 	player thread [[level.console_trials[trial_index]]]();
 
 	player waittill("freerun_done");
+	wait(0.05); //needed to properly register if won
 	won = level.freerun_won; //freerun naming also carried into holdouts
 	IPrintLnBold(won);
 	if(!solo && isdefined(self.health)){
@@ -272,7 +274,7 @@ function doTrial(player){
 function setDefenderHUD(players){
 	obj_str = "Objective: Defend The Console";
 	thread objectiveHUD(obj_str, players);
-	wait(5);
+	wait(1);
 	thread consoleHealthHUD(players);
 	self waittill("freerun_done");
 	thread removeConsoleHealthHUD();
@@ -521,16 +523,10 @@ function completionWaitFor(map_struct, player){
 //call On: player in freerun
 function freerunTimer(limit, hud_txt, b_expiry_good=false){
 	self endon("freerun_done");
-	t = limit;
-	t = Int(t);
-	while(t > 0 && !level.freerun_won){
-		wait(1);
-		t -= 1;
-		hud_txt updateFreerunTimerHUD(t, limit, b_expiry_good);
-	}
+	hud_txt SetTimer(limit);
+	wait(limit);
 	IPrintLnBold("time limit over");
 	level.freerun_won = b_expiry_good;
-	wait(0.05);
 	self notify("freerun_done");
 }
 
@@ -540,52 +536,30 @@ function freerunTimerInit(time_limit, obj_str, b_expiry_good){
 
 	thread objectiveHUD(obj_str, array(self));
 
-	wait(4.75); //when above starts fading out, fade in timer
+	wait(1); //start fading in timer after quick break
 
-	hud_txt = self freerunTimerHUDInit(time_limit, b_expiry_good); //no thread because wait until faded in
+	hud_txt = self freerunTimerHUDInit(time_limit); //no thread because wait until faded in
 	self freerunTimer(time_limit, hud_txt, b_expiry_good);
 	//this returns once time is up but wait until notify incase console destroyed
 	self waittill("freerun_done");
-	//wait(0.05);
 	removeFreerunTimerHUD(hud_txt);
 }
 
 //call on: player in freerun
-function freerunTimerHUDInit(time_limit, b_expiry_good=false){
-	txt = NewClientHudElem(self);
-	txt.x = 0;
-	txt.y = 20;
-	txt.alignX = "center";
-	txt.alignY = "top";
-	txt.horzAlign = "center";
-	txt.vertAlign = "top";
-	txt.foreground = 1;
-	txt.fontscale = 4; //4
+function freerunTimerHUDInit(time_limit){
+	font = "default";
+	fontscale = 2;
 	if(level.Splitscreen && !level.hidef){
-		txt.fontscale = 5.5; //5.5
+		fontscale = 3;
 	}
-	txt.alpha = 0; //MAKE ZERO TO FADE IN
-	red = Int(b_expiry_good);
-	green = 1 - red;
-	txt.color = (red, green, 0);
-	txt.inUse = 1; //0
-	txt SetText(time_limit);
+	
+	txt = hud::createClientTimer(font, fontscale);
+	txt.alpha = 0;
+	txt.y = 20;
 
 	txt FadeOverTime(0.75);
 	txt.alpha = 1;
 	return txt;
-}
-
-//call on: freerun_timer_HUD
-function updateFreerunTimerHUD(time_remaining, time_limit, b_expiry_good=false){
-
-	self SetText(time_remaining);
-	green = time_remaining/time_limit;
-	if(b_expiry_good){
-		green = 1 - green;
-	}
-	red = 1 - green;
-	self.color = (red, green, 0);
 }
 
 //call on: freerun_timer_HUD
@@ -670,6 +644,7 @@ function holdOut(loc_struct, _time = 90){
 	self notify("freerun_done"); //to remove the HUD
 
 	self playerTeleport(map_struct);
+	waittillframeend;
 	return level.freerun_won;
 }
 
@@ -737,22 +712,14 @@ function holdOut2(){
 function objectiveHUD(str, players){
 	txts = [];
 	foreach(player in players){
-		txt = NewClientHudElem(player);
-		//txt = NewHudElem();
-		txt.x = 0;
-		txt.y = 20;
-		txt.alignX = "center";
-		txt.alignY = "top";
-		txt.horzAlign = "center";
-		txt.vertAlign = "top";
-		txt.foreground = 1;
-		txt.fontscale = 4; //4
+		font = "default";
+		fontscale = 2;
 		if(level.Splitscreen && !level.hidef){
-			txt.fontscale = 5.5; //5.5
+			fontscale = 3;
 		}
-		txt.alpha = 0; //MAKE ZERO TO FADE IN
-		txt.color = (1,1,1);
-		txt.inUse = 0; //0
+		txt = hud::createFontString(font, fontscale);
+		txt.y = 0;
+		txt.alpha = 0;
 		txt SetText(str);
 		array::add(txts, txt);
 
