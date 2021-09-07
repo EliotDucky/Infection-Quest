@@ -744,6 +744,7 @@ function consoleHealthHUD(players){
 	//MAKE SURE TO DESTROY WHEN THIS HAPPENS
 	level.console_health_txts = [];
 	foreach(player in players){
+		/*
 		txt = NewClientHudElem(player);
 		txt.x = 0;
 		txt.y = 20;
@@ -759,7 +760,17 @@ function consoleHealthHUD(players){
 		txt.alpha = 0; //MAKE ZERO TO FADE IN
 		txt.color = (1,1,1);
 		txt.inUse = 0; //0
-		txt SetText(str + "^2" + self.health);
+		*/
+		font = "default";
+		fontscale = 2;
+		if(level.Splitscreen && !level.hidef){
+			fontscale = 3;
+		}
+		txt = hud::createFontString(font, fontscale);
+		txt.y = 0;
+		txt.alpha = 0;
+
+		txt SetText(str + "^2" +self.health + "^7");
 		array::add(level.console_health_txts, txt);
 
 		txt FadeOverTime(0.75);
@@ -775,7 +786,7 @@ function consoleHealthHUD(players){
 		}
 		foreach(txt in level.console_health_txts){
 
-			txt SetText(str + colour + self.health);
+			txt SetText(str + colour + self.health +"^7");
 		}
 		wait(0.05);
 	}
