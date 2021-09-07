@@ -511,6 +511,9 @@ function chasmWaitFor(player){
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
+		if(isdefined(self.script_string) && self.script_string == "holdout"){
+			p zm_laststand::PlayerLastStand();
+		}
 		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
 	}
@@ -625,6 +628,15 @@ function holdOut(loc_struct, _time = 90){
 	//teleport player to loc_struct
 	self playerTeleport(loc_struct);
 	self.in_holdout = true;
+	self.freerun_checkpoint = loc_struct;
+	holdout_chasms = GetEntArray("chasm_trigger", "targetname");
+	foreach(chasm in holdout_chasms){
+		if(isdefined(chasm.script_string) && chasm.script_string == "holdout"){
+			//not necessary to call on only this, it is filtered the function
+			//but prevents stack clogging with waittills
+			chasm thread chasmWaitFor(self);
+		}
+	}
 
 	//obj HUD
 	obj_str = "Objective: Survive with What You're Given";
@@ -669,19 +681,15 @@ function callbackOnHoldoutDeath(){
 	holdout_down = isdefined(self) && IsPlayer(self);
 	holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
 	if(holdout_down){
-		//if in laststand or just diedlaststand::player_is_in_laststand()
-		if(true){
-			wait(5);
-			self zm_laststand::revive_force_revive(self);
-			wait(0.05); //to be sure that revive finished
-			self notify("revive_done");
-			self StopRevive(self);
-			level.freerun_won = false;
-			wait(0.05);
-			self notify("freerun_done");
-		}else{
-			//self zm_laststand
-		}
+		//if in laststand or just died laststand::player_is_in_laststand()
+		wait(5);
+		self zm_laststand::revive_force_revive(self);
+		wait(0.05); //to be sure that revive finished
+		self notify("revive_done");
+		self StopRevive(self);
+		level.freerun_won = false;
+		wait(0.05);
+		self notify("freerun_done");
 	}
 }
 

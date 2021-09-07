@@ -165,6 +165,15 @@ Remember that powerups spawn ~56 units above where they're told to
 
 - Place dog spawners for the zombies to run to whilst the player is down for 5 seconds
 
+- Add a chasm trigger before the bottom of the zone's info volume. If the player touches this,
+ they will be downed and teleported back to the start point (script_origin) of this holdout
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| classname		| trigger_multiple					|
+| targetname	| chasm_trigger 					|
+| script_string	| holdout 							|
+
 ## Console Defences
 
 - To attract zombies to the console, place as many script_origins as desired around it
