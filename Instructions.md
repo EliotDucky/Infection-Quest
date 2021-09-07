@@ -163,6 +163,8 @@ Remember that powerups spawn ~56 units above where they're told to
 - Create an array of weapons and attachments for the holdout loadouts
 	- one will be selected randomly
 
+- Place dog spawners for the zombies to run to whilst the player is down for 5 seconds
+
 ## Console Defences
 
 - To attract zombies to the console, place as many script_origins as desired around it

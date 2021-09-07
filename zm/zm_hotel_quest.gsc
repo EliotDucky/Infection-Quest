@@ -633,7 +633,7 @@ function holdOut(loc_struct, _time = 90){
 
 	//max ammo spawning
 	spawn_times = HOLDOUT_PWRUP_TIMES;
-	loc_struct thread holdoutPowerupDrops("player_ammo", spawn_times);
+	loc_struct thread holdoutPowerupDrops("player_ammo", spawn_times, self);
 
 	//loadout
 	wpn = array::random(HOLDOUT_WPNS);
@@ -663,10 +663,13 @@ function callbackOnHoldoutDeath(){
 	holdout_down = isdefined(self) && IsPlayer(self);
 	holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
 	if(holdout_down){
-		wait(0.05);
+		wait(5);
 		self zm_laststand::revive_force_revive(self);
-		wait(0.1); //to be sure that revive finished
+		wait(0.05); //to be sure that revive finished
+		self notify("revive_done");
+		self StopRevive(self);
 		level.freerun_won = false;
+		wait(0.05);
 		self notify("freerun_done");
 	}
 }
@@ -705,7 +708,8 @@ function holdOutSpawning(){
 
 //Thread
 //Call On: loc struct
-function holdoutPowerupDrops(powerup, times_to_spawn){
+function holdoutPowerupDrops(powerup, times_to_spawn, player_in_holdout){
+	player_in_holdout endon("freerun_done");
 	points = GetEntArray(self.target, "targetname");
 	time = 0.0;
 	foreach(spawn_time in times_to_spawn){
