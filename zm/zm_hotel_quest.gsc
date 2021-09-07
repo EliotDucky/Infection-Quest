@@ -70,7 +70,9 @@ function __main__(){
 
 	//callback for holdout down
 	callback::on_laststand(&callbackOnHoldoutDeath);
-	//DO SOLO DEATH TOO
+	//callback for if died from falling or solo down
+	callback::on_player_killed(&callbackOnHoldoutDeath);
+	level.check_end_solo_game_override = &isHoldoutActive;
 }
 
 function registerClientFields(){
@@ -656,6 +658,10 @@ function holdOut(loc_struct, _time = 90){
 	return level.freerun_won;
 }
 
+function isHoldoutActive(){
+	return IS_TRUE(level.holdout_active);
+}
+
 //Call On: Player
 //Through callback::on_laststand
 function callbackOnHoldoutDeath(){
@@ -663,14 +669,19 @@ function callbackOnHoldoutDeath(){
 	holdout_down = isdefined(self) && IsPlayer(self);
 	holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
 	if(holdout_down){
-		wait(5);
-		self zm_laststand::revive_force_revive(self);
-		wait(0.05); //to be sure that revive finished
-		self notify("revive_done");
-		self StopRevive(self);
-		level.freerun_won = false;
-		wait(0.05);
-		self notify("freerun_done");
+		//if in laststand or just diedlaststand::player_is_in_laststand()
+		if(true){
+			wait(5);
+			self zm_laststand::revive_force_revive(self);
+			wait(0.05); //to be sure that revive finished
+			self notify("revive_done");
+			self StopRevive(self);
+			level.freerun_won = false;
+			wait(0.05);
+			self notify("freerun_done");
+		}else{
+			//self zm_laststand
+		}
 	}
 }
 
