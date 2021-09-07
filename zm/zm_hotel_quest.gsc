@@ -2,6 +2,7 @@
 
 #using scripts\shared\ai_shared;
 #using scripts\shared\array_shared;
+#using scripts\shared\callbacks_shared;
 #using scripts\shared\clientfield_shared;
 #using scripts\shared\exploder_shared;
 #using scripts\shared\flag_shared;
@@ -9,12 +10,13 @@
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
-#using scripts\zm\_zm_zonemgr;
-#using scripts\zm\_zm_utility;
 #using scripts\zm\_zm_blockers;
+#using scripts\zm\_zm_laststand;
 #using scripts\zm\_zm_powerups;
 #using scripts\zm\_zm_spawner;
+#using scripts\zm\_zm_utility;
 #using scripts\zm\_zm_weapons;
+#using scripts\zm\_zm_zonemgr;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
@@ -65,6 +67,10 @@ function __main__(){
 
 	zm_zonemgr::zone_init("holdout2_zone");
 	zm_zonemgr::enable_zone("houldout2_zone");
+
+	//callback for holdout down
+	callback::on_laststand(&callbackOnHoldoutDeath);
+	//DO SOLO DEATH TOO
 }
 
 function registerClientFields(){
@@ -616,6 +622,7 @@ function holdOut(loc_struct, _time = 90){
 
 	//teleport player to loc_struct
 	self playerTeleport(loc_struct);
+	self.in_holdout = true;
 
 	//obj HUD
 	obj_str = "Objective: Survive with What You're Given";
@@ -640,12 +647,28 @@ function holdOut(loc_struct, _time = 90){
 	}
 	//state = self util::waittill_any_ex(_time, "freerun_done");
 	self waittill("freerun_done");
+	self.in_holdout = false;
 	level.holdout_active = false;
 	self notify("freerun_done"); //to remove the HUD
 
 	self playerTeleport(map_struct);
 	waittillframeend;
 	return level.freerun_won;
+}
+
+//Call On: Player
+//Through callback::on_laststand
+function callbackOnHoldoutDeath(){
+	//is this player the one doing the holdout
+	holdout_down = isdefined(self) && IsPlayer(self);
+	holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
+	if(holdout_down){
+		wait(0.05);
+		self zm_laststand::revive_force_revive(self);
+		wait(0.1); //to be sure that revive finished
+		level.freerun_won = false;
+		self notify("freerun_done");
+	}
 }
 
 //Use for any defend sequence, not just the holdout
