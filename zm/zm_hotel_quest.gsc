@@ -12,6 +12,7 @@
 
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_laststand;
+#using scripts\zm\_zm_perks;
 #using scripts\zm\_zm_powerups;
 #using scripts\zm\_zm_spawner;
 #using scripts\zm\_zm_utility;
@@ -20,6 +21,8 @@
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
+
+#insert scripts\zm\_zm_perks.gsh;
 
 #using scripts\zm\zm_powerup_player_ammo;
 #insert scripts\zm\zm_hotel_quest.gsh;
@@ -250,11 +253,9 @@ function doTrial(player){
 	player waittill("freerun_done");
 	wait(0.05); //needed to properly register if won
 	won = level.freerun_won; //freerun naming also carried into holdouts
-	IPrintLnBold(won);
 	if(!solo && isdefined(self.health)){
 		won &= self.health > 0;
 	}
-	IPrintLnBold(won);
 
 	wait(0.05);
 	foreach(poi in pois){
@@ -488,7 +489,33 @@ function freerunLoadout(replacement_wpn){
 	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
 	self SwitchToWeapon(rplc_wpn);
 
+	//perks
+	if(isdefined(self.perks_active)){
+		perks = [];
+		foreach(perk in self.perks_active){
+			self UnSetPerk(perk); //FIND OUT IF THIS WORKS
+			self zm_perks::set_perk_clientfield(perk, PERK_STATE_PAUSED);
+			// turn off perk when perk is paused, if custom func is set
+			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_take ) )
+			{
+				self thread [[ level._custom_perks[ perk ].player_thread_take ]]( true );
+			}	
+			array::add(perks, perk, 0);
+		}
+	}
+
 	self waittill("freerun_done");
+
+	//return perks before weapons to stop mule kick issue
+	if(isdefined(perks)){
+		foreach(perk in perks){
+			self zm_perks::give_perk(perk);
+			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_give ) )
+			{
+				self thread [[ level._custom_perks[ perk ].player_thread_give ]]();
+			}	
+		}
+	}
 
 	self zm_weapons::weapon_take(rplc_wpn);
 
@@ -564,7 +591,7 @@ function freerunTimerHUDInit(time_limit){
 		fontscale = 3;
 	}
 	
-	txt = hud::createClientTimer(font, fontscale);
+	txt = self hud::createClientTimer(font, fontscale);
 	txt.alpha = 0;
 	txt.y = 20;
 
@@ -763,7 +790,7 @@ function objectiveHUD(str, players){
 		if(level.Splitscreen && !level.hidef){
 			fontscale = 3;
 		}
-		txt = hud::createFontString(font, fontscale);
+		txt = player hud::createFontString(font, fontscale);
 		txt.y = 0;
 		txt.alpha = 0;
 		txt SetText(str);
@@ -790,30 +817,13 @@ function consoleHealthHUD(players){
 	//MAKE SURE TO DESTROY WHEN THIS HAPPENS
 	level.console_health_txts = [];
 	foreach(player in players){
-		/*
-		txt = NewClientHudElem(player);
-		txt.x = 0;
-		txt.y = 20;
-		txt.alignX = "center";
-		txt.alignY = "top";
-		txt.horzAlign = "center";
-		txt.vertAlign = "top";
-		txt.foreground = 1;
-		txt.fontscale = 4; //4
-		if(level.Splitscreen && !level.hidef){
-			txt.fontscale = 5.5; //5.5
-		}
-		txt.alpha = 0; //MAKE ZERO TO FADE IN
-		txt.color = (1,1,1);
-		txt.inUse = 0; //0
-		*/
 		font = "default";
 		fontscale = 2;
 		if(level.Splitscreen && !level.hidef){
 			fontscale = 3;
 		}
-		txt = hud::createFontString(font, fontscale);
-		txt.y = 0;
+		txt = player hud::createFontString(font, fontscale);
+		txt.y = 20;
 		txt.alpha = 0;
 
 		txt SetText(str + "^2" +self.health + "^7");
@@ -844,9 +854,7 @@ function removeConsoleHealthHUD(){
 		txt.alpha = 0;
 	}
 	wait(0.75);
-	foreach(txt in level.console_health_txts){
-		txt Destroy();
-	}
+	//DESTROY causes error loop
 }
 
 //Call On: Player
