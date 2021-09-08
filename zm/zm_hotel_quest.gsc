@@ -511,11 +511,11 @@ function chasmWaitFor(player){
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
-		if(isdefined(self.script_string) && self.script_string == "holdout"){
-			p zm_laststand::PlayerLastStand();
-		}
 		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
+		if(isdefined(self.script_string) && self.script_string == "holdout"){
+			p thread holdoutLastStand();
+		}
 	}
 }
 
@@ -683,7 +683,7 @@ function callbackOnHoldoutDeath(){
 	if(holdout_down){
 		//if in laststand or just died laststand::player_is_in_laststand()
 		wait(5);
-		self zm_laststand::revive_force_revive(self);
+		self holdoutCustomRevive(self);
 		wait(0.05); //to be sure that revive finished
 		self notify("revive_done");
 		self StopRevive(self);
@@ -919,4 +919,30 @@ function nukeAllZombies(){
 	{
 		zombie.delayAmbientVox = false;
 	}*/
+}
+
+//Necessary to stop weapon switching and regiving things that are
+//intended to be taken (i.e. holdout loadout)
+//Call On: Player
+function holdoutCustomRevive(reviver){
+	self zm_laststand::auto_revive(self, true); //stop wpn switching at end
+
+	self EnableWeaponCycling();
+	self EnableOffhandWeapons();
+	self AllowJump(true);
+	self AllowCrouch(true);
+	self AllowStand(true);
+	self AllowSprint(true);
+	self SetStance("stand");
+}
+
+//Call On: Player
+function holdoutLastStand(){
+	self SetStance("prone");
+	self AllowJump(false);
+	self AllowCrouch(false);
+	self AllowStand(false);
+	self AllowSprint(false);
+	self zm_laststand::PlayerLastStand();
+	self SetStance("stand");
 }
