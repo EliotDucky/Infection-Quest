@@ -493,13 +493,16 @@ function freerunLoadout(replacement_wpn){
 	if(isdefined(self.perks_active)){
 		perks = [];
 		foreach(perk in self.perks_active){
-			self UnSetPerk(perk); //FIND OUT IF THIS WORKS
-			self zm_perks::set_perk_clientfield(perk, PERK_STATE_PAUSED);
+			self UnSetPerk(perk);
+			self zm_perks::set_perk_clientfield(perk, PERK_STATE_NOT_OWNED);
 			// turn off perk when perk is paused, if custom func is set
 			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_take ) )
 			{
 				self thread [[ level._custom_perks[ perk ].player_thread_take ]]( true );
-			}	
+			}
+			//hide the HUD
+			self zm_perks::perk_hud_destroy(perk);
+
 			array::add(perks, perk, 0);
 		}
 	}
@@ -513,7 +516,7 @@ function freerunLoadout(replacement_wpn){
 			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_give ) )
 			{
 				self thread [[ level._custom_perks[ perk ].player_thread_give ]]();
-			}	
+			}
 		}
 	}
 
@@ -710,7 +713,7 @@ function callbackOnHoldoutDeath(){
 	if(holdout_down){
 		//if in laststand or just died laststand::player_is_in_laststand()
 		wait(5);
-		self holdoutCustomRevive(self);
+		self holdoutCustomRevive();
 		wait(0.05); //to be sure that revive finished
 		self notify("revive_done");
 		self StopRevive(self);
@@ -932,8 +935,13 @@ function nukeAllZombies(){
 //Necessary to stop weapon switching and regiving things that are
 //intended to be taken (i.e. holdout loadout)
 //Call On: Player
-function holdoutCustomRevive(reviver){
+function holdoutCustomRevive(){
 	self zm_laststand::auto_revive(self, true); //stop wpn switching at end
+
+	if(isdefined(self.revivetrigger)){
+		self.revivetrigger Delete();
+		self.revivetrigger = undefined;
+	}
 
 	self EnableWeaponCycling();
 	self EnableOffhandWeapons();
