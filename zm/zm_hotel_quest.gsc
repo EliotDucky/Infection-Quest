@@ -954,11 +954,5 @@ function holdoutCustomRevive(){
 
 //Call On: Player
 function holdoutLastStand(){
-	self SetStance("prone");
-	self AllowJump(false);
-	self AllowCrouch(false);
-	self AllowStand(false);
-	self AllowSprint(false);
-	self zm_laststand::PlayerLastStand();
-	self SetStance("stand");
+	self DoDamage(self.health, self.origin);
 }
