@@ -508,17 +508,32 @@ function freerunLoadout(replacement_wpn){
 		}
 	}
 
+	if(level.using_solo_revive){
+		//force give back the same lives as before the trial
+		before_lives = level.solo_lives_given;
+	}
+
 	self waittill("freerun_done");
+
+	if(level.using_solo_revive){
+		//as long as this is defined, it will stop QR lives being used up
+		//it is set to undefined each time the player is given it
+		//therefore define each time a trial is started in solo
+		level.solo_game_free_player_quickrevive = true;
+		//if a life was used up, give it back
+		level.solo_lives_given = before_lives;
+	}
 
 	//return perks before weapons to stop mule kick issue
 	if(isdefined(perks)){
 		foreach(perk in perks){
 			self zm_perks::give_perk(perk);
-			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_give ) )
-			{
-				self thread [[ level._custom_perks[ perk ].player_thread_give ]]();
-			}
 		}
+	}
+
+	if(level.using_solo_revive){
+		//make sure can't be exploited after this
+		level.solo_game_free_player_quickrevive = undefined;
 	}
 
 	self zm_weapons::weapon_take(rplc_wpn);
