@@ -523,6 +523,11 @@ function freerunLoadout(replacement_wpn){
 	self zm_weapons::weapon_take(rplc_wpn);
 
 	foreach(info in weapon_info){
+		b_valid_wpn = info.weapon.name != "minigun"; 
+		if(!b_valid_wpn){
+			do_switch =! info.weapon == current_weapon;
+			continue;
+		}
 		wpn = self zm_weapons::weapon_give(info.weapon);
 		self SetWeaponAmmoClip(wpn, info.clip_size);
 		dual_wield = wpn.dualWieldWeapon;
@@ -531,7 +536,10 @@ function freerunLoadout(replacement_wpn){
 		}
 		self SetWeaponAmmoStock(wpn, info.stock_size);
 	}
-	self SwitchToWeapon(current_weapon);
+	//CHECK FOR BOTTLE, SYRETTE
+	if(do_switch){
+		self SwitchToWeapon(current_weapon);
+	}
 }
 
 //call On: chasm trig_multiples
