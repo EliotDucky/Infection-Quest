@@ -188,7 +188,8 @@ function questConsoleWaitFor(){
 	self.complete = false;
 	while(self.waiting){
 		self waittill("trigger", player);
-		if(self.waiting){ //check to make sure it is still waiting
+		//check to make sure it is still waiting
+		if(self.waiting && !(self zm_utility::in_revive_trigger() || self.is_drinking)){ 
 			//deactivate other consoles
 			array::thread_all(level.quest_consoles, &temporaryLock, self);
 			self SetHintString("");
@@ -523,7 +524,9 @@ function freerunLoadout(replacement_wpn){
 	self zm_weapons::weapon_take(rplc_wpn);
 
 	foreach(info in weapon_info){
-		b_valid_wpn = info.weapon.name != "minigun"; 
+		b_valid_wpn = info.weapon.name != "minigun" && info.weapon.name != "zombie_bgb_grab"; 
+		b_valid_wpn &= info.weapon.name != "zombie_bgb_use" && info.weapon.name != "bowie_flourish";
+		b_valid_wpn &= !zm_utility::is_player_revive_tool(info.weapon);
 		if(!b_valid_wpn){
 			do_switch =! info.weapon == current_weapon;
 			continue;
@@ -536,7 +539,8 @@ function freerunLoadout(replacement_wpn){
 		}
 		self SetWeaponAmmoStock(wpn, info.stock_size);
 	}
-	//CHECK FOR BOTTLE, SYRETTE
+	//This checks for grenade, melee, equipment, hero
+	do_switch &= !zm_utility::is_offhand_weapon(current_weapon);
 	if(do_switch){
 		self SwitchToWeapon(current_weapon);
 	}
