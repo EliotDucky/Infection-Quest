@@ -553,6 +553,7 @@ function chasmWaitFor(player){
 	self SetHintString("");
 	while(true){
 		self waittill("trigger", p);
+		player SetVelocity((0, 0, 0));
 		p playerTeleport(p.freerun_checkpoint);
 		wait(0.05);
 		if(isdefined(self.script_string) && self.script_string == "holdout"){
