@@ -537,6 +537,12 @@ function freerunLoadout(replacement_wpn){
 	}
 
 	self zm_weapons::weapon_take(rplc_wpn);
+	//take the laststand pistol + any others too
+	weapons = self GetWeaponsList();
+	foreach(weapon in weapons)
+	{
+		self zm_weapons::weapon_take(weapon);
+	}
 
 	foreach(info in weapon_info){
 		b_valid_wpn = info.weapon.name != "minigun" && info.weapon.name != "zombie_bgb_grab"; 
@@ -966,6 +972,7 @@ function nukeAllZombies(){
 function holdoutCustomRevive(){
 	self zm_laststand::auto_revive(self, true); //stop wpn switching at end
 
+	self notify("stop_revive_trigger");
 	if(isdefined(self.revivetrigger)){
 		self.revivetrigger Delete();
 		self.revivetrigger = undefined;
