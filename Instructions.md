@@ -184,3 +184,14 @@ Remember that powerups spawn ~56 units above where they're told to
 | targetname			| *same as target of console trigger* 	|
 | origin				| location to attract zombies to		|
 | script_noteworthy		| poi									|
+
+## Spike Launcher
+
+- Add to zone
+
+```
+//Spike Launcher
+weapon,spike_launcher_zm
+weapon,spike_charge_zm
+scriptparsetree,scripts/zm/zm_hotel_spike_launcher.gsc
+```
