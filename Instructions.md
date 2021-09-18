@@ -195,3 +195,15 @@ weapon,spike_launcher_zm
 weapon,spike_charge_zm
 scriptparsetree,scripts/zm/zm_hotel_spike_launcher.gsc
 ```
+
+- In `mapname.csc`
+
+```
+#using scripts\shared\weapons\spike_charge;
+```
+
+- In `mapname.gsc`
+
+```
+#using scripts\zm\zm_hotel_spike_launcher;
+```
