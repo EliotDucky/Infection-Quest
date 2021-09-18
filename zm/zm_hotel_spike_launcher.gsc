@@ -13,12 +13,16 @@ function autoexec __init__system__(){
 }
 
 function __init__(){
-	launcher = GetWeapon("spike_launcher");
-	weaponobjects::createSpikeLauncherWatcher(launcher);
 }
 
 function __main__(){
 	callback::on_connect(&spikeLauncherTutorialWatcher);
+	callback::on_connect(&spikeLauncherWatcher);
+}
+
+//Call On: Player
+function spikeLauncherWatcher(){
+	self weaponobjects::createSpikeLauncherWatcher("spike_launcher");
 }
 
 //Call On: Player
