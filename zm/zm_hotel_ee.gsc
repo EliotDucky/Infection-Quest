@@ -53,6 +53,9 @@
 //Quests
 #using scripts\zm\zm_hotel_quest;
 
+//Spike Launcher
+#using scripts\zm\zm_hotel_spike_launcher;
+
 #using scripts\zm\zm_usermap;
 
 //*****************************************************************************

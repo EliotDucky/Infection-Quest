@@ -6,6 +6,8 @@
 #using scripts\shared\scene_shared;
 #using scripts\shared\util_shared;
 
+#using scripts\shared\weapons\spike_charge;
+
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
