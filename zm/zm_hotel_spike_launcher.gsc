@@ -1,4 +1,5 @@
 #using scripts\shared\callbacks_shared;
+#using scripts\shared\hud_util_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
@@ -42,7 +43,33 @@ function detonateWaitTill(wpn_spike_launcher){
 	self waittill("weapon_fired", w_current);
 	if(w_current == wpn_spike_launcher){
 		wait(2);
-		IPrintLnBold("HUD TEXT: Press Melee To Detonate"); //HUD TEXT FUNCTION HERE
-		//self util::waittill_any("detonate", "last_stand_detonate");
+		self thread spikeLauncherTutorialHUD();
+		self util::waittill_any("detonate", "last_stand_detonate");
+		self.spike_launcher_tutorial_complete = true;
 	}
+}
+
+//Call On: Player
+function spikeLauncherTutorialHUD(){
+	self notify("spike_launcher_HUD");
+	self endon("spike_launcher_HUD");
+	font = "default";
+	fontscale = 2;
+	if(level.Splitscreen && !level.hidef){
+		fontscale = 3;
+	}
+	txt = self hud::createFontString(font, fontscale);
+	txt.vertalign = "bottom";
+	txt.y = -100;
+	txt.alpha = 0;
+	txt SetText("PRESS ^3[{+melee}]^7 TO DETONATE SPIKE CHARGE");
+	txt FadeOverTime(0.5);
+	txt.alpha = 1;
+
+	self util::waittill_any_timeout(20, "detonate", "last_stand_detonate");
+
+	txt FadeOverTime(0.5);
+	txt.alpha = 0;
+	wait(0.5);
+	txt Destroy();
 }
