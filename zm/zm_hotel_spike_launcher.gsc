@@ -160,6 +160,8 @@ function upgradedSpikeWatcher(watcher, owner){
 	self endon("death");
 	self util::waitTillNotMoving();
 	//the above filters only those spawned on a surface in
+
+	DEFAULT(level.spike_pois, []);
 	
 	//Get nav mesh position near this spike
 	b_valid_poi = zm_utility::check_point_in_enabled_zone(self.origin, undefined, undefined);
@@ -176,7 +178,7 @@ function upgradedSpikeWatcher(watcher, owner){
 			4, level.monkey_attract_dist_diff
 		);
 		spike_poi thread zm_utility::wait_for_attractor_positions_complete();
-		array::add(owner.spike_pois, spike_poi);
+		array::add(level.spike_pois, spike_poi);
 	}
 }
 
@@ -219,9 +221,14 @@ function move_valid_poi_to_navmesh(b_valid_poi){
 //Call On: The spawned bolt/spike
 function endSpikeAttractionOnDeath(attacker, weapon, target){
 	self thread weaponobjects::spikeDetonate(attacker, weapon, target);
-	foreach(poi in attacker.spike_pois){
+	foreach(poi in level.spike_pois){
 		//NOT WORKING AT THE MOMENT
+		IPrintLnBold(poi.origin);
+		poi.attract_to_origin = false;
 		poi zm_utility::deactivate_zombie_point_of_interest();
+		wait(0.05);
+		poi Hide();
+		poi Delete();
 	}
-	attacker.spike_pois = [];
+	level.spike_pois = [];
 }
