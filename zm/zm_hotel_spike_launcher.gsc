@@ -1,9 +1,22 @@
+#using scripts\shared\array_shared;
 #using scripts\shared\callbacks_shared;
 #using scripts\shared\hud_util_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
+#insert scripts\shared\shared.gsh;
+
 #using scripts\shared\weapons\_weaponobjects;
+
+#using scripts\zm\_zm_utility;
+
+#define	POI_MAX_RADIUS				200
+#define	POI_HALF_HEIGHT				200
+#define	POI_INNER_SPACING			2
+#define	POI_RADIUS_FROM_EDGES		16
+#define POI_HEIGHT 					200
+
+#define SPIKE_POI_RANK				800
 
 #namespace zm_hotel_spike_launcher;
 
@@ -18,6 +31,11 @@ function __init__(){
 function __main__(){
 	callback::on_connect(&spikeLauncherTutorialWatcher);
 	callback::on_connect(&spikeLauncherWatcher);
+	callback::on_connect(&spikeUpgradeWatcher);
+
+	DEFAULT(level.monkey_attract_dist, 1536);
+	DEFAULT(level.num_monkey_attractors, 96);
+	DEFAULT(level.monkey_attract_dist_diff, 45);
 }
 
 //Call On: Player
@@ -26,7 +44,7 @@ function spikeLauncherWatcher(){
 }
 
 //Call On: Player
-//Callback on spawned
+//Callback on connect
 function spikeLauncherTutorialWatcher(){
 	wpn_spike_launcher = GetWeapon("spike_launcher");
 	self.spike_launcher_tutorial_complete = false;
@@ -76,4 +94,141 @@ function spikeLauncherTutorialHUD(){
 	txt.alpha = 0;
 	wait(0.5);
 	txt Destroy();
+}
+
+//Call On: Player
+//Callback on connect
+function spikeUpgradeWatcher(){
+	self.spike_pois = [];
+
+	weapon = "spike_launcher_upgraded";
+	watcher = self weaponobjects::createUseWeaponObjectWatcher(weapon, self.team);
+	watcher.altName = "spike_charge_upgraded";
+	watcher.altWeapon = GetWeapon("spike_charge_upgraded");
+	watcher.altDetonate = false;
+	watcher.watchForFire = true;
+	watcher.hackable = true;
+	watcher.hackerToolRadius = level.equipmentHackerToolRadius;
+	watcher.hackerToolTimeMs = level.equipmentHackerToolTimeMs;
+	watcher.headIcon = false;
+	watcher.onDetonateCallback = &weaponobjects::spikeDetonate;
+	watcher.onStun = &weaponobjects::weaponStun;
+	watcher.stunTime = 1;
+	watcher.ownerGetsAssist = true;
+	watcher.detonateStationary = false;
+	watcher.detonationDelay = 0.0;
+	watcher.detonationSound = "wpn_claymore_alert";
+	watcher.onDetonateHandle = &upgradedSpikesDetonating;
+	self thread upgradedSpikeLauncherUpgradedItemCountChanged(watcher);
+
+	upgrade_spike_watcher = self weaponobjects::createWeaponObjectWatcher("spike_charge_upgraded", self.team);
+	upgrade_spike_watcher.onSpawn = &upgradedSpikeWatcher;
+	upgrade_spike_watcher.onDetonateCallback = &endSpikeAttractionOnDeath;
+}
+
+//Call On: Player
+function upgradedSpikesDetonating(watcher){
+	spike_count = weaponobjects::getSpikeLauncherActiveSpikeCount(watcher);
+	if ( spike_count > 0 )
+	{
+		self SetControllerUIModelValue( "spikeLauncherCounter.blasting", 1 );
+		wait 2;
+		self SetControllerUIModelValue( "spikeLauncherCounter.blasting", 0 );
+	}
+}
+
+//Call On: Player
+function upgradedSpikeLauncherUpgradedItemCountChanged(watcher){
+	self endon("death");
+	last_item_count = undefined;
+	while(true){
+		self waittill("weapon_change", weapon);
+		while(weapon.name == "spike_launcher_upgraded"){
+			current_item_count = weaponobjects::getSpikeLauncherActiveSpikeCount(watcher);
+			if(current_item_count !== last_item_count){
+				self SetControllerUIModelValue("spikeLauncherCounter.spikesReady", current_item_count);
+				last_item_count = current_item_count;
+			}
+			wait(0.1);
+			weapon = self GetCurrentWeapon();
+		}
+	}
+}
+
+//Call On: The spawned bolt
+function upgradedSpikeWatcher(watcher, owner){
+	self endon("death");
+	self util::waitTillNotMoving();
+	//the above filters only those spawned on a surface in
+
+	DEFAULT(level.spike_pois, []);
+	
+	//Get nav mesh position near this spike
+	b_valid_poi = zm_utility::check_point_in_enabled_zone(self.origin, undefined, undefined);
+	v_valid_poi = self move_valid_poi_to_navmesh(b_valid_poi);
+	if(v_valid_poi != (0, 0, 0)){
+		IPrintLnBold("valid");
+		spike_poi = Spawn("script_origin", v_valid_poi);
+		spike_poi zm_utility::create_zombie_point_of_interest(
+			level.monkey_attract_dist,
+			level.num_monkey_attractors,
+			10000);
+		spike_poi.attract_to_origin = true;
+		spike_poi thread zm_utility::create_zombie_point_of_interest_attractor_positions(
+			4, level.monkey_attract_dist_diff
+		);
+		spike_poi thread zm_utility::wait_for_attractor_positions_complete();
+		array::add(level.spike_pois, spike_poi);
+	}
+}
+
+//Call On: The spawned bolt/spike
+//Returns a valid poi location
+//If no valid location found, returns (0, 0, 0)
+function move_valid_poi_to_navmesh(b_valid_poi){
+	v_valid_poi = (0, 0, 0);
+	if(IsPointOnNavMesh(self.origin)){
+		v_valid_poi = self.origin;
+	}else{
+		//Find results on the nav mesh to make POI
+		query_result = PositionQuery_Source_Navigation(
+			self.origin, 0,
+			POI_MAX_RADIUS,
+			POI_HALF_HEIGHT,
+			POI_INNER_SPACING,
+			POI_RADIUS_FROM_EDGES
+		);
+		if(query_result.data.size > 0){
+			foreach(point in query_result.data){
+				//Check not too far off
+				height_delta = Abs(self.origin[2] - point.origin[2]);
+				if(!(height_delta > POI_HEIGHT)){
+					//Do bullet trace to make sure not going between walls
+					start = point.origin + (0, 0, 20);
+					end = self.origin + (0, 0, 20);
+					if(BulletTracePassed(start, end, false, self, undefined, false, false)){
+						//make the poi this valid location
+						v_valid_poi = point.origin;
+						break; //end the loop as point found
+					}
+				}
+			}
+		}
+	}
+	return v_valid_poi;
+}
+
+//Call On: The spawned bolt/spike
+function endSpikeAttractionOnDeath(attacker, weapon, target){
+	self thread weaponobjects::spikeDetonate(attacker, weapon, target);
+	foreach(poi in level.spike_pois){
+		//NOT WORKING AT THE MOMENT
+		IPrintLnBold(poi.origin);
+		poi.attract_to_origin = false;
+		poi zm_utility::deactivate_zombie_point_of_interest();
+		wait(0.05);
+		poi Hide();
+		poi Delete();
+	}
+	level.spike_pois = [];
 }
