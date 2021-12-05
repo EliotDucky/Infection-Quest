@@ -14,6 +14,21 @@
 | target 		| *reward origin targetname* 	  	|
 | script_int 	| *unique integer from 0 upwards* 	|
 
+- To teleport, set up a buffer location in a box
+
+| Key 			| Value 							|
+| -------------:|:--------------------------------- |
+| classname		| script_origin 					|
+| targetname	| teleport_buffer					|
+
+- Teleport box also requires a zone
+
+| Key 					| Value 							|
+| ---------------------:|:--------------------------------- |
+| classname				| info_volume 						|
+| targetname			| tele_zone 						|
+| script_noteworthy 	| player_volume 					|
+
 ## Freerun
 
 (example for "Freerun 1")

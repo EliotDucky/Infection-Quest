@@ -6,3 +6,4 @@
 #define CONSOLE_ATTACK_SQ_RAD	8000
 #define CONSOLE_HEALTH			1000
 #define Z_CONSOLE_DAMAGE 		50
+#define TELEPORT_MOVIE			"cp_newworld_fs_whiteinfinite"

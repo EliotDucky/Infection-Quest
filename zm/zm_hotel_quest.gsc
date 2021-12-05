@@ -7,6 +7,8 @@
 #using scripts\shared\exploder_shared;
 #using scripts\shared\flag_shared;
 #using scripts\shared\hud_util_shared;
+#using scripts\shared\lui_shared;
+#using scripts\shared\player_shared;
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
@@ -45,6 +47,7 @@ function __init__(){
 	array::thread_all(level.quest_consoles, &questConsoleInit);
 	level.weapon_fists = GetWeapon("bare_hands");
 	consoleAttackAnims();
+	level.teleport_buffer = GetEnt("teleport_buffer", "targetname");
 }
 
 function __main__(){
@@ -63,6 +66,10 @@ function __main__(){
 	//enable zones for trials
 	zm_zonemgr::zone_init("trial_zone");
 	zm_zonemgr::enable_zone("trial_zone");
+
+	//enable zone for teleporting
+	zm_zonemgr::zone_init("tele_zone");
+	zm_zonemgr::enable_zone("tele_zone");
 
 	//enable holdout zones
 	zm_zonemgr::zone_init("holdout1_zone");
@@ -183,6 +190,9 @@ function stringies(str){
 function questConsoleWaitFor(){
 	self notify("not_waiting");
 	self endon("not_waiting");
+	//prime the teleport movie
+	lui::prime_movie(TELEPORT_MOVIE, true);
+
 	self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 	self.waiting = true;
 	self.complete = false;
@@ -443,8 +453,9 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	level.freerun_won = false;
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
+
 	//teleport player to start
-	self playerTeleport(start_struct);
+	self teleportAndLoadoutTo(start_struct, level.weapon_fists);
 
 	obj_str = "Complete the Course Before the Timer Expires";
 	self thread freerunTimerInit(time_limit, obj_str, false);
@@ -456,11 +467,107 @@ function freeRun(start_struct, time_limit, completion_trigs, chasm_trigs, checkp
 	array::thread_all(completion_trigs, &completionWaitFor, map_struct, self);
 	array::thread_all(checkpoints, &checkPointWaitFor);
 	self thread freerunMovement();
-	self thread freerunLoadout(level.weapon_fists);
+	
 	self waittill("freerun_done");
 	self notify("freerun_done"); //to remove HUD
-	self playerTeleport(map_struct);
+	self teleportAndLoadoutFrom(map_struct, level.weapon_fists);
 	return level.freerun_won;
+}
+
+function teleportAndLoadoutTo(location, replacement_wpn){
+	tele_fade_time = 0.75;
+
+	self FreezeControls(true);
+	//this stores weapons in self._weapons[] as well as ._current_weapon
+	self player::take_weapons();
+	//stored in self._perks[]
+	self takePerks();
+	//stored in self._before_lives
+	self selfReviveHandleInit();
+
+	wait(0.05);
+	_none = self zm_weapons::weapon_give(level.weapon_none);
+	wait(5);
+	
+
+	self playerTeleport(location, true, tele_fade_time);
+	wait(0.05);
+
+	//give loadout weapon
+	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
+	self SwitchToWeapon(rplc_wpn);
+
+	wait(tele_fade_time/3);
+	self FreezeControls(false);
+}
+
+//call after notify of freerun_done
+function teleportAndLoadoutFrom(location, replacement_wpn){
+	tele_fade_time = 0.4;
+
+	self FreezeControls(true);
+
+	self zm_weapons::weapon_take(replacement_wpn);
+	wait(0.05);
+	self playerTeleport(location, true, tele_fade_time);
+	wait(0.05);
+
+	self selfReviveHandlePost();
+	self givePerks();
+	self player::give_back_weapons(false);
+
+	wait(tele_fade_time/3);
+	self FreezeControls(false);
+}
+
+function takePerks(){
+	DEFAULT(self._perks, array());
+	if(isdefined(self.perks_active)){
+		foreach(perk in self.perks_active){
+			self UnSetPerk(perk);
+			self zm_perks::set_perk_clientfield(perk, PERK_STATE_NOT_OWNED);
+			// turn off perk when perk is paused, if custom func is set
+			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_take ) )
+			{
+				self thread [[ level._custom_perks[ perk ].player_thread_take ]]( true );
+			}
+			//hide the HUD
+			self zm_perks::perk_hud_destroy(perk);
+
+			array::add(self._perks, perk, 0);
+		}
+	}
+}
+
+function selfReviveHandleInit(){
+	if(level.using_solo_revive){
+		//force give back the same lives as before the trial
+		self._before_lives = level.solo_lives_given;
+	}
+}
+
+function selfReviveHandlePost(){
+	if(level.using_solo_revive){
+		//as long as this is defined, it will stop QR lives being used up
+		//it is set to undefined each time the player is given it
+		//therefore define each time a trial is started in solo
+		level.solo_game_free_player_quickrevive = true;
+		//if a life was used up, give it back
+		level.solo_lives_given = self._before_lives;
+	}
+}
+
+function givePerks(){
+	//return perks before weapons to stop mule kick issue
+	if(isdefined(self._perks)){
+		foreach(perk in self._perks){
+			self zm_perks::give_perk(perk);
+		}
+	}
+	if(level.using_solo_revive){
+		//make sure can't be exploited after this
+		level.solo_game_free_player_quickrevive = undefined;
+	}
 }
 
 //call On: player
@@ -482,10 +589,11 @@ function freerunLoadout(replacement_wpn){
 			info.left_clip_size = self GetWeaponAmmoClip(weapon.dualWieldWeapon);
 		}
 		info.stock_size = self GetWeaponAmmoStock(weapon);
-
-		array::add(weapon_info, info);
+		array::add(weapon_info, player::get_weapondata(weapon));
 		self zm_weapons::weapon_take(weapon);
 	}
+
+	self player::take_weapons();
 
 	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
 	self SwitchToWeapon(rplc_wpn);
@@ -575,7 +683,7 @@ function chasmWaitFor(player){
 	while(true){
 		self waittill("trigger", p);
 		player SetVelocity((0, 0, 0));
-		p playerTeleport(p.freerun_checkpoint);
+		p playerTeleport(p.freerun_checkpoint, false);
 		wait(0.05);
 		if(isdefined(self.script_string) && self.script_string == "holdout"){
 			p thread holdoutLastStand();
@@ -689,8 +797,13 @@ function holdOut(loc_struct, _time = 90){
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
 
+	
+	//loadout
+	wpn = array::random(HOLDOUT_WPNS);
+	wpn = GetWeapon(wpn);
 	//teleport player to loc_struct
-	self playerTeleport(loc_struct);
+	self teleportAndLoadoutTo(loc_struct, wpn);
+
 	self.in_holdout = true;
 	self.freerun_checkpoint = loc_struct;
 	holdout_chasms = GetEntArray("chasm_trigger", "targetname");
@@ -713,10 +826,7 @@ function holdOut(loc_struct, _time = 90){
 	spawn_times = HOLDOUT_PWRUP_TIMES;
 	loc_struct thread holdoutPowerupDrops("player_ammo", spawn_times, self);
 
-	//loadout
-	wpn = array::random(HOLDOUT_WPNS);
-	wpn = GetWeapon(wpn);
-	self thread freerunLoadout(wpn);
+	
 	solo = GetPlayers().size <= 1;
 	if(solo){
 		//do these if not done in the main doTrial function
@@ -729,7 +839,7 @@ function holdOut(loc_struct, _time = 90){
 	level.holdout_active = false;
 	self notify("freerun_done"); //to remove the HUD
 
-	self playerTeleport(map_struct);
+	self teleportAndLoadoutFrom(map_struct, wpn);
 	waittillframeend;
 	return level.freerun_won;
 }
@@ -895,10 +1005,39 @@ function removeConsoleHealthHUD(){
 }
 
 //Call On: Player
-function playerTeleport(ent){
-	self SetOrigin(ent.origin);
-	self SetPlayerAngles(ent.angles);
+function playerTeleport(ent, do_cutscene = true, fade_time){
+	if(do_cutscene){
+		self thread lui::screen_fade_out(fade_time, "white");
+		wait(fade_time);
+		loc = level.teleport_buffer;
+		self SetOrigin(loc.origin);
+		self SetPlayerAngles(loc.angles);
+
+		self thread lui::play_movie(TELEPORT_MOVIE, "fullscreen", true, true);
+		wait(3.5);
+		//stop
+		lui_menu = self GetLUIMenu("FullscreenMovie");
+		self CloseLUIMenu(lui_menu);
+		self notify("movie_done");
+
+		self SetOrigin(ent.origin);
+		self SetPlayerAngles(ent.angles);
+
+		self thread lui::screen_fade_in(fade_time, "white");
+		wait(fade_time);
+		self thread returnHUD(fade_time);
+	}else{
+		self SetOrigin(ent.origin);
+		self SetPlayerAngles(ent.angles);
+	}
 }
+
+function returnHUD(fade_time){
+	wait(fade_time/3);
+	self setClientUIVisibilityFlag("hud_visible", 1);
+	self setClientUIVisibilityFlag("weapon_hud_visible", 1);
+}
+
 
 function nukeAllZombies(){
 	//Copied from Connor

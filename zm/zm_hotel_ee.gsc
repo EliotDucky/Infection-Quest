@@ -80,6 +80,8 @@ function main()
 	level.pathdist_type = PATHDIST_ORIGINAL;
 
 	level.player_starting_points = 10000;
+
+	thread scriptbundleTest();
 }
 
 function usermap_test_zone_init()
@@ -93,3 +95,18 @@ function custom_add_weapons()
 	zm_weapons::load_weapon_spec_from_table("gamedata/weapons/zm/zm_levelcommon_weapons.csv", 1);
 }
 
+//Call On: level
+function scriptbundleTest(){
+	trig = GetEnt("scriptbundle_test", "targetname");
+	trig SetHintString("Press ^3[{+activate}]^7 to test scene");
+	trig SetCursorHint("HINT_NOICON");
+	while(true){
+		trig waittill("trigger", player);
+		IPrintLnBold("play");
+		player thread scene::play("cin_gen_player_hack_start", player);
+		player clientfield::set_to_player("sndCCHacking", 1);
+		wait(2);
+		player clientfield::set_to_player( "sndCCHacking", 0);
+		player scene::play("cin_gen_player_hack_finish", player);
+	}
+}
