@@ -902,14 +902,18 @@ function removeConsoleHealthHUD(){
 //Call On: Player
 function playerTeleport(ent, do_cutscene = true, fade_time){
 	if(do_cutscene){
+		_ent = Spawn("script_origin", self.origin);
+		_ent PlaySound("zmb_teleporter_teleport_in");
 		self thread lui::screen_fade_out(fade_time, "white");
 		wait(fade_time);
 		loc = level.teleport_buffer;
+		
 		self SetOrigin(loc.origin);
 		self SetPlayerAngles(loc.angles);
 
+		_ent PlaySoundToPlayer("zmb_teleporter_teleport_2d", self);
 		self thread lui::play_movie(TELEPORT_MOVIE, "fullscreen", true, true);
-		wait(3.5);
+		wait(2.5);
 		//stop
 		lui_menu = self GetLUIMenu("FullscreenMovie");
 		self CloseLUIMenu(lui_menu);
@@ -918,9 +922,15 @@ function playerTeleport(ent, do_cutscene = true, fade_time){
 		self SetOrigin(ent.origin);
 		self SetPlayerAngles(ent.angles);
 
+		_ent Delete();
+		wait(0.05);
+		_ent = Spawn("script_origin", self.origin);
+		_ent PlaySound("zmb_teleporter_teleport_out");
+
 		self thread lui::screen_fade_in(fade_time, "white");
 		wait(fade_time);
 		self thread returnHUD(fade_time);
+		_ent Delete();
 	}else{
 		self SetOrigin(ent.origin);
 		self SetPlayerAngles(ent.angles);
