@@ -529,7 +529,6 @@ function takePerks(){
 	DEFAULT(self._perks, array());
 	if(isdefined(self.perks_active)){
 		foreach(perk in self.perks_active){
-
 			array::add(self._perks, perk, 0);
 			self UnSetPerk(perk);
 			self zm_perks::set_perk_clientfield(perk, PERK_STATE_NOT_OWNED);
@@ -541,9 +540,7 @@ function takePerks(){
 			//hide the HUD
 			self zm_perks::perk_hud_destroy(perk);
 
-			//ArrayRemoveValue(self.perks_active, perk, false);
 			self.num_perks--;
-			wait(0.05);
 		}
 	}
 }
