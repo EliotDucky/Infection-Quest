@@ -83,6 +83,8 @@ function __main__(){
 	//callback for if died from falling or solo down
 	callback::on_player_killed(&callbackOnHoldoutDeath);
 	level.check_end_solo_game_override = &isHoldoutActive;
+
+	level.console_last_round_used = 0;
 }
 
 function registerClientFields(){
@@ -198,20 +200,26 @@ function questConsoleWaitFor(){
 	self.complete = false;
 	while(self.waiting){
 		self waittill("trigger", player);
-		//check to make sure it is still waiting
-		if(self.waiting && !(self zm_utility::in_revive_trigger() || self.is_drinking)){ 
-			//deactivate other consoles
-			array::thread_all(level.quest_consoles, &temporaryLock, self);
-			self SetHintString("");
+		if(isdefined(level.round_number) && level.console_last_round_used < level.round_number){
+			level.console_last_round_used = level.round_number;
+			//check to make sure it is still waiting
+			if(self.waiting && !(self zm_utility::in_revive_trigger() || self.is_drinking)){ 
+				//deactivate other consoles
+				array::thread_all(level.quest_consoles, &temporaryLock, self);
+				self SetHintString("");
 
-			if(self doTrial(player)){
-				self.complete = true;
-				self.waiting = false;
+				if(self doTrial(player)){
+					self.complete = true;
+					self.waiting = false;
+				}
+				wait(0.05);
+				array::thread_all(level.quest_consoles, &unlock);
 			}
-			wait(0.05);
-			array::thread_all(level.quest_consoles, &unlock);
+		}else{
+			self SetHintString("Console may only be used once per round");
+			wait(3);
+			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 		}
-		
 	}
 }
 
@@ -517,9 +525,12 @@ function teleportAndLoadoutFrom(location, replacement_wpn){
 }
 
 function takePerks(){
+	IPrintLnBold(self.num_perks);
 	DEFAULT(self._perks, array());
 	if(isdefined(self.perks_active)){
 		foreach(perk in self.perks_active){
+
+			array::add(self._perks, perk, 0);
 			self UnSetPerk(perk);
 			self zm_perks::set_perk_clientfield(perk, PERK_STATE_NOT_OWNED);
 			// turn off perk when perk is paused, if custom func is set
@@ -530,9 +541,9 @@ function takePerks(){
 			//hide the HUD
 			self zm_perks::perk_hud_destroy(perk);
 
-			array::add(self._perks, perk, 0);
+			//ArrayRemoveValue(self.perks_active, perk, false);
 			self.num_perks--;
-			ArrayRemoveValue(self.perks_active, perk, false);
+			wait(0.05);
 		}
 	}
 }
