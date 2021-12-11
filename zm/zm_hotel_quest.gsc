@@ -200,7 +200,7 @@ function questConsoleWaitFor(){
 	self.complete = false;
 	while(self.waiting){
 		self waittill("trigger", player);
-		if(isdefined(level.round_number) && level.console_last_round_used < level.round_number){
+		if(isdefined(level.round_number) && level.console_last_round_used + 1 < level.round_number){
 			level.console_last_round_used = level.round_number;
 			//check to make sure it is still waiting
 			if(self.waiting && !(self zm_utility::in_revive_trigger() || self.is_drinking)){ 
@@ -216,7 +216,7 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &unlock);
 			}
 		}else{
-			self SetHintString("Console may only be used once per round");
+			self SetHintString("Consoles recharging...");
 			wait(3);
 			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 		}
@@ -498,8 +498,9 @@ function teleportAndLoadoutTo(location, replacement_wpn){
 	wait(0.05);
 
 	//give loadout weapon
-	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
-	self SwitchToWeapon(rplc_wpn);
+	is_upgrade = zm_weapons::is_weapon_upgraded(replacement_wpn);
+	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn,
+		is_upgrade, false, true, true);
 
 	wait(tele_fade_time/3);
 	self FreezeControls(false);
@@ -525,7 +526,6 @@ function teleportAndLoadoutFrom(location, replacement_wpn){
 }
 
 function takePerks(){
-	IPrintLnBold(self.num_perks);
 	DEFAULT(self._perks, array());
 	if(isdefined(self.perks_active)){
 		foreach(perk in self.perks_active){
@@ -576,111 +576,6 @@ function givePerks(){
 	if(level.using_solo_revive){
 		//make sure can't be exploited after this
 		level.solo_game_free_player_quickrevive = undefined;
-	}
-}
-
-//call On: player
-function freerunLoadout(replacement_wpn){
-	current_weapon = self GetCurrentWeapon();
-	weapons = self GetWeaponsList();
-	weapon_info = [];
-	//index of weapons lines up with weapon info
-	foreach(weapon in weapons){
-		base = zm_weapons::get_nonalternate_weapon(weapon);
-		if(base != weapon){
-			continue;
-		}
-		info = SpawnStruct();
-		info.weapon = weapon;
-		info.clip_size = self GetWeaponAmmoClip(weapon);
-		info.left_clip_size = -1;
-		if(weapon.dualWieldWeapon != level.weaponNone){
-			info.left_clip_size = self GetWeaponAmmoClip(weapon.dualWieldWeapon);
-		}
-		info.stock_size = self GetWeaponAmmoStock(weapon);
-		array::add(weapon_info, player::get_weapondata(weapon));
-		self zm_weapons::weapon_take(weapon);
-	}
-
-	self player::take_weapons();
-
-	rplc_wpn = self zm_weapons::weapon_give(replacement_wpn);
-	self SwitchToWeapon(rplc_wpn);
-
-	//perks
-	if(isdefined(self.perks_active)){
-		perks = [];
-		foreach(perk in self.perks_active){
-			self UnSetPerk(perk);
-			self zm_perks::set_perk_clientfield(perk, PERK_STATE_NOT_OWNED);
-			// turn off perk when perk is paused, if custom func is set
-			if ( isdefined( level._custom_perks[ perk ] ) && isdefined( level._custom_perks[ perk ].player_thread_take ) )
-			{
-				self thread [[ level._custom_perks[ perk ].player_thread_take ]]( true );
-			}
-			//hide the HUD
-			self zm_perks::perk_hud_destroy(perk);
-
-			array::add(perks, perk, 0);
-		}
-	}
-
-	if(level.using_solo_revive){
-		//force give back the same lives as before the trial
-		before_lives = level.solo_lives_given;
-	}
-
-	self waittill("freerun_done");
-
-	if(level.using_solo_revive){
-		//as long as this is defined, it will stop QR lives being used up
-		//it is set to undefined each time the player is given it
-		//therefore define each time a trial is started in solo
-		level.solo_game_free_player_quickrevive = true;
-		//if a life was used up, give it back
-		level.solo_lives_given = before_lives;
-	}
-
-	//return perks before weapons to stop mule kick issue
-	if(isdefined(perks)){
-		foreach(perk in perks){
-			self zm_perks::give_perk(perk);
-		}
-	}
-
-	if(level.using_solo_revive){
-		//make sure can't be exploited after this
-		level.solo_game_free_player_quickrevive = undefined;
-	}
-
-	self zm_weapons::weapon_take(rplc_wpn);
-	//take the laststand pistol + any others too
-	weapons = self GetWeaponsList();
-	foreach(weapon in weapons)
-	{
-		self zm_weapons::weapon_take(weapon);
-	}
-
-	foreach(info in weapon_info){
-		b_valid_wpn = info.weapon.name != "minigun" && info.weapon.name != "zombie_bgb_grab"; 
-		b_valid_wpn &= info.weapon.name != "zombie_bgb_use" && info.weapon.name != "bowie_flourish";
-		b_valid_wpn &= !zm_utility::is_player_revive_tool(info.weapon);
-		if(!b_valid_wpn){
-			do_switch =! info.weapon == current_weapon;
-			continue;
-		}
-		wpn = self zm_weapons::weapon_give(info.weapon);
-		self SetWeaponAmmoClip(wpn, info.clip_size);
-		dual_wield = wpn.dualWieldWeapon;
-		if(level.weaponNone != dual_wield && isdefined(info.left_clip_size)){
-			self SetWeaponAmmoClip(dual_wield, info.left_clip_size);
-		}
-		self SetWeaponAmmoStock(wpn, info.stock_size);
-	}
-	//This checks for grenade, melee, equipment, hero
-	do_switch &= !zm_utility::is_offhand_weapon(current_weapon);
-	if(do_switch){
-		self SwitchToWeapon(current_weapon);
 	}
 }
 
