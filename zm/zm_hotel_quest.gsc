@@ -363,7 +363,6 @@ function zombiesTargetConsole(trial_player){
 			ArrayRemoveIndex(points, i, false);
 		}
 	}
-	IPrintLnBold(points.size);
 	foreach(point in points){
 		point zm_utility::create_zombie_point_of_interest(ZOMBIE_POI_RANK);
 		point.attract_to_origin = true;
@@ -697,7 +696,6 @@ function completionWaitFor(map_struct, player){
 	self SetHintString("");
 	self waittill("trigger", p);
 	level.freerun_won = true;
-	IPrintLnBold("Freerun Done");
 	wait(0.05);
 	player notify("freerun_done");
 }
@@ -707,7 +705,6 @@ function freerunTimer(limit, hud_txt, b_expiry_good=false){
 	self endon("freerun_done");
 	hud_txt SetTimer(limit);
 	wait(limit);
-	IPrintLnBold("time limit over");
 	level.freerun_won = b_expiry_good;
 	self notify("freerun_done");
 }
@@ -758,7 +755,7 @@ function freerunMovement(){
 	self AllowDoubleJump(true);
 	self AllowWallRun(true);
 	self SetSprintDuration(999);
-	self thread energyMonitor();
+	//self thread energyMonitor();
 
 	self waittill("freerun_done");
 
@@ -874,10 +871,8 @@ function holdOutSpawning(){
 	self endon("holdout_spawning");
 	self endon("disconnect");
 	wait(0.05);
-	IPrintLnBold("SPAWNING");
 	level.holdout_active = true;
 	level.no_powerups = true; //turn powerups off
-	IPrintLnBold(level.zombie_health); //check it is defined already
 	stnd_z_health = level.zombie_health; //store the standard zombie health
 	level.zombie_health = Z_HOLDOUT_HEALTH; //max health of new zombies spawning
 	stnd_z_speed = level.zombie_move_speed; //store the standard move speed
@@ -887,7 +882,6 @@ function holdOutSpawning(){
 		if(level.zombie_total <= 30){
 			level.zombie_total = 40;
 		}
-		IPrintLn("spawn queue: "+level.zombie_total);
 		wait(2); //no need to wait a frame, can get better performance
 	}
 	//holdout has ended
@@ -907,7 +901,6 @@ function holdoutPowerupDrops(powerup, times_to_spawn, player_in_holdout){
 	foreach(spawn_time in times_to_spawn){
 		wait(spawn_time - time);
 		time = spawn_time;
-		IPrintLnBold(time);
 		//spawn powerup
 		point = array::random(points);
 		u = undefined;
