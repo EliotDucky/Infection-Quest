@@ -532,6 +532,8 @@ function takePerks(){
 			self zm_perks::perk_hud_destroy(perk);
 
 			array::add(self._perks, perk, 0);
+			self.num_perks--;
+			ArrayRemoveValue(self.perks_active, perk, false);
 		}
 	}
 }

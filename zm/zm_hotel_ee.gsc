@@ -67,7 +67,6 @@ function main()
 	level.dog_rounds_allowed = 0;
 	
 	zm_usermap::main();
-	
 	level._zombie_custom_add_weapons =&custom_add_weapons;
 	
 	//Setup the levels Zombie Zone Volumes
@@ -79,7 +78,7 @@ function main()
 
 	level.pathdist_type = PATHDIST_ORIGINAL;
 
-	level.player_starting_points = 10000;
+	level.player_starting_points = 30000;
 
 	thread scriptbundleTest();
 }
