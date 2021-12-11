@@ -486,10 +486,7 @@ function teleportAndLoadoutTo(location, replacement_wpn){
 	self selfReviveHandleInit();
 
 	wait(0.05);
-	_none = self zm_weapons::weapon_give(level.weapon_none);
-	wait(5);
 	
-
 	self playerTeleport(location, true, tele_fade_time);
 	wait(0.05);
 
