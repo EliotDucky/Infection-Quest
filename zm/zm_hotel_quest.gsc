@@ -517,6 +517,10 @@ function teleportAndLoadoutFrom(location, replacement_wpn){
 	self FreezeControls(true);
 
 	self zm_weapons::weapon_take(replacement_wpn);
+	foreach(weapon in self GetWeaponsList()){
+		self zm_weapons::weapon_take(weapon);
+	}
+
 	wait(0.05);
 	self playerTeleport(location, true, tele_fade_time);
 	wait(0.05);
@@ -524,9 +528,27 @@ function teleportAndLoadoutFrom(location, replacement_wpn){
 	self selfReviveHandlePost();
 	self givePerks();
 	self player::give_back_weapons(false);
-
+	
 	wait(tele_fade_time/3);
 	self FreezeControls(false);
+	if(self checkReturnedWeapons()){
+		self SwitchToWeapon();
+	}
+}
+
+//Call on: Player
+function checkReturnedWeapons(){
+	removed_current = false;
+	foreach(weapon in self GetWeaponsList()){
+		b_valid_wpn = weapon.name != "minigun" && weapon.name != "zombie_bgb_grab"; 
+		b_valid_wpn &= weapon.name != "zombie_bgb_use" && weapon.name != "bowie_flourish";
+		b_valid_wpn &= !zm_utility::is_player_revive_tool(weapon);
+		if(!b_valid_wpn){
+			removed_current = weapon == self._current_weapon;
+			self zm_weapons::weapon_take(weapon);
+		}
+	}
+	return removed_current;
 }
 
 function takePerks(){
