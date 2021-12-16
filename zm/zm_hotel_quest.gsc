@@ -29,6 +29,10 @@
 #using scripts\zm\zm_powerup_player_ammo;
 #insert scripts\zm\zm_hotel_quest.gsh;
 
+#precache("triggerstring", "Press ^3[{+activate}]^7 to begin trial");
+#precache("triggerstring", "Consoles reactivate after one full round");
+#precache("triggerstring", "This console is locked");
+
 #namespace zm_hotel_quest;
 
 function autoexec __init__system__(){
@@ -216,7 +220,7 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &unlock);
 			}
 		}else{
-			self SetHintString("Consoles recharging...");
+			self SetHintString("Consoles reactivate after one full round");
 			wait(3);
 			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 		}
