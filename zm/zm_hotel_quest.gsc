@@ -801,6 +801,11 @@ function holdOutSpawning(){
 	self endon("disconnect");
 	wait(0.05);
 	level.holdout_active = true;
+	//no scoring
+	players = GetPlayers();
+	foreach(player in players){
+		player.inhibit_scoring_from_zombies = true;
+	}
 	level.no_powerups = true; //turn powerups off
 	stnd_z_health = level.zombie_health; //store the standard zombie health
 	level.zombie_health = Z_HOLDOUT_HEALTH; //max health of new zombies spawning
@@ -814,6 +819,9 @@ function holdOutSpawning(){
 		wait(2); //no need to wait a frame, can get better performance
 	}
 	//holdout has ended
+	foreach(player in players){
+		player.inhibit_scoring_from_zombies = false;
+	}
 	level.zombie_total = 0;
 	level.no_powerups = false; //re-enable powerups
 	level.zombie_health = stnd_z_health; //reset zombie health to pre-holdout
