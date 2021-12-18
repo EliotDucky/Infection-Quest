@@ -902,17 +902,19 @@ function consoleHealthHUD(players){
 	}
 	wait(0.75);
 	while(self.health > 0){
+		status = "OK";
 		colour = "^2";
 		if(self.health < CONSOLE_HEALTH/2){
+			status = "DAMAGED";
 			colour = "^3";
 		}else if(self.health < CONSOLE_HEALTH/4){
+			status = "CRITICAL";
 			colour = "^1";
 		}
 		foreach(txt in level.console_health_txts){
-
-			txt SetText(str + colour + self.health +"^7");
+			txt SetText(colour + str + status +"^7");
 		}
-		wait(0.05);
+		wait(1);
 	}
 }
 
