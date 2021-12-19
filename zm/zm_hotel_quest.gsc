@@ -93,6 +93,7 @@ function __main__(){
 
 function registerClientFields(){
 	clientfield::register("world", "client_movement", VERSION_SHIP, 1, "int");
+	clientfield::register("script_mover", "console_health_light", VERSION_SHIP, 2, "int");
 }
 
 /*
@@ -143,6 +144,14 @@ function setClientMovement(){
 function questConsoleInit(){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
+	
+	self.lights = [];
+	trgs = GetEntArray(self.target, "targetname");
+	foreach(trg in trgs){
+		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy == "light_loc"){
+			array::add(self.lights, trg);
+		}
+	}
 }
 
 function consoleAttackAnims(){
@@ -198,7 +207,7 @@ function questConsoleWaitFor(){
 	self endon("not_waiting");
 	//prime the teleport movie
 	lui::prime_movie(TELEPORT_MOVIE, true);
-
+	
 	self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 	self.waiting = true;
 	self.complete = false;
@@ -353,13 +362,34 @@ function doorUnlock(){
 //call on: console trig
 function consoleInitHealth(){
 	self.health = CONSOLE_HEALTH;
-	//DISPLAY HEALTH
+	consoleHealthLighting();
+}
+
+//Call on: console trig
+//Only call upon damage
+function consoleHealthLighting(old_health){
+	col_num = 0;
+	if(self.health == CONSOLE_HEALTH){
+		col_num = 1;
+	}else if(self.health <= 0 && old_health > 0){
+		col_num = 0;
+	}else if(self.health < CONSOLE_HEALTH/4 && old_health >= CONSOLE_HEALTH/4){
+		col_num = 3;
+	}else if(self.health < CONSOLE_HEALTH/2 && old_health >= CONSOLE_HEALTH/2){
+		col_num = 2;
+	}
+	foreach(light in self.lights){
+		self clientfield::set("console_health_light", col_num);
+	}
+	
 }
 
 //call on: console trig
 function consoleTakeDamage(damage, trial_player){
+	old_health = self.health;
 	self.health -= damage;
 	IPrintLnBold("Console Health: "+self.health);
+	self thread consoleHealthLighting(old_health);
 	if(self.health <= 0){
 		trial_level.freerun_won = false; //before notify to be safe
 		wait(0.05);

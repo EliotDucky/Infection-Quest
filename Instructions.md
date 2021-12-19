@@ -200,6 +200,18 @@ Remember that powerups spawn ~56 units above where they're told to
 | origin				| location to attract zombies to		|
 | script_noteworthy		| poi									|
 
+- To display flashing lights indicating console health & normal status lights,
+ include targeted script_origins around it
+
+| Key 					| Value 								|
+| ---------------------:|:------------------------------------- |
+| classname				| script_origin							|
+| targetname			| *same as target of console trigger* 	|
+| origin				| location to play lights on 			|
+| script_noteworthy		| light_loc								|
+
+- The flashing light FX names should be registered in zone
+
 ## Spike Launcher
 
 - Add to zone
