@@ -56,8 +56,6 @@ function private getColourFromNum(num){
 		case 1:
 			colour = "green";
 			break;
-		default:
-			colour "";
 	}
 	return colour;
 }
