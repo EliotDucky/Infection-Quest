@@ -43,10 +43,6 @@ function autoexec __init__system__(){
 function __init__(){
 	registerClientFields();
 
-	//Movement
-	level thread setServerMovement();
-	level thread setClientMovement();
-
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
   
@@ -59,6 +55,9 @@ function __init__(){
 }
 
 function __main__(){
+	//Movement
+	level thread setServerMovement();
+	level thread setClientMovement();
 	
 	//waitfor power
 	level flag::wait_till("power_on");
