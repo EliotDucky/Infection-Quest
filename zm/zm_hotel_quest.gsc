@@ -93,7 +93,7 @@ function __main__(){
 
 function registerClientFields(){
 	clientfield::register("world", "client_movement", VERSION_SHIP, 1, "int");
-	clientfield::register("script_mover", "console_health_light", VERSION_SHIP, 2, "int");
+	clientfield::register("scriptmover", "console_health_light", VERSION_SHIP, 2, "int");
 }
 
 /*

@@ -16,7 +16,7 @@ function autoexec __init__system__(){
 
 function __init__(){
 	clientfield::register("world", "client_movement", VERSION_SHIP, 1, "int", &setClientMovement, 0, 0);
-	clientfield::register("script_mover", "console_health_light", VERSION_SHIP, 2, "int", &consoleHealthLight, 0, 0);
+	clientfield::register("scriptmover", "console_health_light", VERSION_SHIP, 2, "int", &consoleHealthLight, 0, 0);
 	precacheFX();
 }
 
