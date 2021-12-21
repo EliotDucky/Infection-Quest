@@ -80,6 +80,8 @@ function main()
 
 	level.player_starting_points = 30000;
 
+	zm_weap_spike_launcher::setSpikeAttractDist(512);
+
 	thread scriptbundleTest();
 }
 
