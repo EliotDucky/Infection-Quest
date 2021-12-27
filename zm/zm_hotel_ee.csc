@@ -39,6 +39,9 @@
 //Quests
 #using scripts\zm\zm_hotel_quest;
 
+//Spike Launcher
+#using scripts\zm\weapons\zm_weap_spike_launcher\spike_charge_upg;
+
 #using scripts\zm\zm_usermap;
 
 function main()
