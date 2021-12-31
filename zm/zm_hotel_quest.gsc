@@ -94,7 +94,7 @@ function __main__(){
 
 function registerClientFields(){
 	clientfield::register("world", "client_movement", VERSION_SHIP, 1, "int");
-	clientfield::register("scriptmover", "console_health_light", VERSION_SHIP, 2, "int");
+	clientfield::register("scriptmover", "console_health_light", VERSION_SHIP, 3, "int");
 }
 
 /*
@@ -150,7 +150,9 @@ function questConsoleInit(){
 	trgs = GetEntArray(self.target, "targetname");
 	foreach(trg in trgs){
 		if(isdefined(trg.script_noteworthy) && trg.script_noteworthy == "light_loc"){
-			array::add(self.lights, trg);
+			model = Spawn("script_model", trg.origin);
+			model SetModel("script_origin");
+			array::add(self.lights, model);
 		}
 	}
 }
@@ -210,6 +212,9 @@ function questConsoleWaitFor(){
 	lui::prime_movie(TELEPORT_MOVIE, true);
 	
 	self SetHintString("Press ^3[{+activate}]^7 to begin trial");
+	foreach(light in self.lights){
+		light clientfield::set("console_health_light", 4);
+	}
 	self.waiting = true;
 	self.complete = false;
 	while(self.waiting){
@@ -244,6 +249,9 @@ function temporaryLock(exception){
 		self.waiting = false;
 		//self notify("not_waiting");
 		self SetHintString("This console is locked");
+		foreach(light in self.lights){
+			light clientfield::set("console_health_light", 0);
+		}
 	}
 }
 
@@ -252,7 +260,9 @@ function unlock(){
 	if(!self.complete){
 		self.waiting = true;
 		self SetHintString("Press ^3[{+activate}]^7 to begin trial");
-		//self thread questConsoleWaitFor();
+		foreach(light in self.lights){
+			light clientfield::set("console_health_light", 4);
+		}
 	}
 }
 
@@ -269,7 +279,7 @@ function doTrial(player){
 	players = GetPlayers();
 	solo = players.size <= 1;
 	pois = [];
-	if(!solo){
+	if(!solo || DEVMODE){
 		self thread consoleInitHealth();
 		level thread respawnZAfterTime(5);
 		pois = self thread zombiesTargetConsole(player);
@@ -286,7 +296,7 @@ function doTrial(player){
 	player waittill("freerun_done");
 	wait(0.05); //needed to properly register if won
 	won = level.freerun_won; //freerun naming also carried into holdouts
-	if(!solo && isdefined(self.health)){
+	if(!solo || DEVMODE && isdefined(self.health)){
 		won &= self.health > 0;
 	}
 
@@ -304,8 +314,15 @@ function doTrial(player){
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
 		self thread spawnReward();
 		//unlock a door stage
-
 		level thread doorUnlock();
+
+		foreach(light in self.lights){
+			light clientfield::set("console_health_light", 5);
+		}
+	}else{
+		foreach(light in self.lights){
+			light clientfield::set("console_health_light", 4);
+		}
 	}
 
 	level thread respawnZAfterTime(5);
@@ -369,20 +386,26 @@ function consoleInitHealth(){
 //Call on: console trig
 //Only call upon damage
 function consoleHealthLighting(old_health){
-	col_num = 0;
+	col_num = -1;
 	if(self.health == CONSOLE_HEALTH){
+		IPrintLnBold("green");
 		col_num = 1;
 	}else if(self.health <= 0 && old_health > 0){
+		IPrintLnBold("none");
 		col_num = 0;
 	}else if(self.health < CONSOLE_HEALTH/4 && old_health >= CONSOLE_HEALTH/4){
+		IPrintLnBold("red");
 		col_num = 3;
 	}else if(self.health < CONSOLE_HEALTH/2 && old_health >= CONSOLE_HEALTH/2){
+		IPrintLnBold("amber");
 		col_num = 2;
 	}
-	foreach(light in self.lights){
-		self clientfield::set("console_health_light", col_num);
+	if(col_num > -1){
+		//make sure not turning off & actually needs to change
+		foreach(light in self.lights){
+			light clientfield::set("console_health_light", col_num);
+		}
 	}
-	
 }
 
 //call on: console trig
@@ -933,7 +956,6 @@ function consoleHealthHUD(players){
 		txt.y = 20;
 		txt.alpha = 0;
 
-		txt SetText(str + "^2" +self.health + "^7");
 		array::add(level.console_health_txts, txt);
 
 		txt FadeOverTime(0.75);
