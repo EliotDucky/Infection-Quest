@@ -83,7 +83,6 @@ function main()
 	zm_weap_spike_launcher::setSpikeAttractDist(512);
 
 	thread scriptbundleTest();
-	thread sndFunctions();
 }
 
 function usermap_test_zone_init()

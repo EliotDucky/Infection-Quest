@@ -59,9 +59,6 @@ function __init__(){
 }
 
 function __main__(){
-	//Movement
-	level thread setServerMovement();
-	level thread setClientMovement();
 	
 	//waitfor power
 	level flag::wait_till("power_on");
@@ -94,6 +91,10 @@ function __main__(){
 	level.check_end_solo_game_override = &isHoldoutActive;
 
 	level.console_last_round_used = 0;
+
+	//Movement
+	level thread setServerMovement();
+	level thread setClientMovement();
 }
 
 function registerClientFields(){
