@@ -12,6 +12,7 @@
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
+#using scripts\zm\_zm_audio;
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_laststand;
 #using scripts\zm\_zm_perks;
@@ -24,6 +25,7 @@
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
 
+#insert scripts\zm\_zm_audio.gsh;
 #insert scripts\zm\_zm_perks.gsh;
 
 #using scripts\zm\zm_powerup_player_ammo;
@@ -52,6 +54,8 @@ function __init__(){
 	level.weapon_fists = GetWeapon("bare_hands");
 	consoleAttackAnims();
 	level.teleport_buffer = GetEnt("teleport_buffer", "targetname");
+
+	zm_audio::musicState_Create("trial", PLAYTYPE_ROUND, "trial");
 }
 
 function __main__(){
@@ -293,7 +297,14 @@ function doTrial(player){
 
 	player thread [[level.console_trials[trial_index]]]();
 
+	//Music State Start
+	zm_audio::sndMusicSystem_PlayState("trial");
+
 	player waittill("freerun_done");
+
+	//Music State End
+
+
 	wait(0.05); //needed to properly register if won
 	won = level.freerun_won; //freerun naming also carried into holdouts
 	if(!solo || DEVMODE && isdefined(self.health)){
@@ -310,7 +321,6 @@ function doTrial(player){
 	level flag::clear("spawn_zombies");
 
 	if(won){
-		//array::remove_index(level.console_trials, trial_index);
 		ArrayRemoveIndex(level.console_trials, trial_index, false);
 		self thread spawnReward();
 		//unlock a door stage

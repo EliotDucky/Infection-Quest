@@ -112,25 +112,3 @@ function scriptbundleTest(){
 		player scene::play("cin_gen_player_hack_finish", player);
 	}
 }
-
-function sndFunctions()
-{
-	level thread setupMusic();
-}
-
-#define PLAYTYPE_REJECT 1
-#define PLAYTYPE_QUEUE 2
-#define PLAYTYPE_ROUND 3
-#define PLAYTYPE_SPECIAL 4
-#define PLAYTYPE_GAMEEND 5
-function setupMusic()
-{
-	zm_audio::musicState_Create("round_start", PLAYTYPE_ROUND, "round_start_hotel_1", "round_start_hotel_2", "round_start_hotel_3", "round_start_hotel_4" );
-	zm_audio::musicState_Create("round_start_short", PLAYTYPE_ROUND, "round_start_hotel_1", "round_start_hotel_2", "round_start_hotel_3", "round_start_hotel_4" );
-	zm_audio::musicState_Create("round_start_first", PLAYTYPE_ROUND, "round_start_first_hotel" );
-	zm_audio::musicState_Create("round_end", PLAYTYPE_ROUND, "round_end_hotel_1", "round_end_hotel_2" );
-	zm_audio::musicState_Create("game_over", PLAYTYPE_GAMEEND, "gameover_hotel" );
-	zm_audio::musicState_Create("trial", PLAYTYPE_QUEUE, "trial" );
-	zm_audio::musicState_Create("musicEasterEgg", PLAYTYPE_SPECIAL, "sic" );
-	//zm_audio::sndMusicSystem_EESetup("musicEasterEgg", (380, -145, -9), (-162, -1622, 322), (-18, -1263, 707));
-}
