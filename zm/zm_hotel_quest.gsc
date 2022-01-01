@@ -55,7 +55,8 @@ function __init__(){
 	consoleAttackAnims();
 	level.teleport_buffer = GetEnt("teleport_buffer", "targetname");
 
-	zm_audio::musicState_Create("trial", PLAYTYPE_ROUND, "trial");
+	zm_audio::musicState_Create("trial", PLAYTYPE_SPECIAL, "trial0", "trial1", "trial2", "trial3");
+	zm_audio::musicState_Create("none", PLAYTYPE_SPECIAL, "none");
 }
 
 function __main__(){
@@ -298,8 +299,7 @@ function doTrial(player){
 
 	player thread [[level.console_trials[trial_index]]]();
 
-	//Music State Start
-	zm_audio::sndMusicSystem_PlayState("trial");
+	level thread trialMusic(player);
 
 	player waittill("freerun_done");
 
@@ -338,6 +338,26 @@ function doTrial(player){
 
 	level thread respawnZAfterTime(5);
 	return won;
+}
+
+//call on: level
+//thread
+function trialMusic(trial_player){
+	//Wait a while to load into the trials
+	wait(5);
+
+	//Music State Start
+	level thread zm_audio::sndMusicSystem_PlayState("trial");
+
+	trial_player waittill("freerun_done");
+
+	//if the playing music is a higher priority than the trial music, don't flush
+	b_flush = isdefined(level.musicSystem) && isdefined(level.musicSystem.currentPlaytype);
+	b_flush &= level.musicSystem.currentPlaytype <= PLAYTYPE_SPECIAL;
+	if(b_flush){
+		IPrintLnBold("flush");
+		level thread zm_audio::sndMusicSystem_PlayState("none");
+	}
 }
 
 //call on: player doing trial
