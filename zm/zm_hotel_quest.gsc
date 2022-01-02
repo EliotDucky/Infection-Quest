@@ -637,7 +637,7 @@ function checkReturnedWeapons(){
 }
 
 function takePerks(){
-	DEFAULT(self._perks, array());
+	self._perks = [];
 	if(isdefined(self.perks_active)){
 		foreach(perk in self.perks_active){
 			array::add(self._perks, perk, 0);
