@@ -118,13 +118,31 @@ use clips as you would in a normal door, (example):
 | script_string	| move								|
 | script_vector	| 0 0 -100 							|
 
-- Perk drop rewards with ``script_notworthy: "r"`
+- Perk drop rewards with `script_notworthy: "r"`
 
 | Key 				| Value 							|
 | -----------------:|:--------------------------------- |
 | classname			| script_origin						|
 | targetname		| *unique name targeted by console* |
 | script_noteworthy	| r									|
+
+- Add rewards script path to zone
+
+`scriptparsetree,scripts/zm/zm_hotel_rewards.gsc`
+
+- Create a trigger in radiant for each reward
+
+| Key		    | Value							     |
+| -------------:|:---------------------------------  |
+| classname	    | trigger_use					     |
+| targetname	| reward_room_trig				     |
+| script_string | *wpn_name (without "hero")*		 |
+| target		| *model to display*		         |
+
+| Key           | Value                              |
+| -------------:|:---------------------------------  |
+| classname     | script_model                       |
+| targetname    | *target of trigger*                |
 
 ## Holdout
 

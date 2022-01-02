@@ -29,6 +29,7 @@
 #insert scripts\zm\_zm_perks.gsh;
 
 #using scripts\zm\zm_powerup_player_ammo;
+#using scripts\zm\zm_hotel_rewards;
 #insert scripts\zm\zm_hotel_quest.gsh;
 
 #precache("triggerstring", "Press ^3[{+activate}]^7 to begin trial");
@@ -55,7 +56,7 @@ function __init__(){
 	consoleAttackAnims();
 	level.teleport_buffer = GetEnt("teleport_buffer", "targetname");
 
-	zm_audio::musicState_Create("trial", PLAYTYPE_SPECIAL, "trial0", "trial1", "trial2", "trial3");
+	zm_audio::musicState_Create("trial", PLAYTYPE_SPECIAL, "hotel_ee_trial0", "hotel_ee_trial1", "hotel_ee_trial2", "hotel_ee_trial3");
 	zm_audio::musicState_Create("none", PLAYTYPE_SPECIAL, "none");
 }
 
@@ -884,6 +885,7 @@ function holdOutSpawning(){
 	self notify("holdout_spawning");
 	self endon("holdout_spawning");
 	self endon("disconnect");
+	start_total = level.zombie_total;
 	wait(0.05);
 	level.holdout_active = true;
 	//no scoring
@@ -907,7 +909,7 @@ function holdOutSpawning(){
 	foreach(player in players){
 		player.inhibit_scoring_from_zombies = false;
 	}
-	level.zombie_total = 0;
+	level.zombie_total = start_total;
 	level.no_powerups = false; //re-enable powerups
 	level.zombie_health = stnd_z_health; //reset zombie health to pre-holdout
 	//round change shouldn't have happened

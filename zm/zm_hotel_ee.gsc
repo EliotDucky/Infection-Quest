@@ -56,6 +56,11 @@
 //Spike Launcher
 #using scripts\zm\weapons\zm_weap_spike_launcher\zm_weap_spike_launcher;
 
+//Reward Weapons
+#using scripts\zm\_zm_hero_weapon;
+#using scripts\zm\_zm_weap_annihilator;
+#using scripts\zm\_zm_weap_gravityspikes;
+
 #using scripts\zm\zm_usermap;
 
 //*****************************************************************************
