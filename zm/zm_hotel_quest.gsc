@@ -226,7 +226,7 @@ function questConsoleWaitFor(){
 	self.complete = false;
 	while(self.waiting){
 		self waittill("trigger", player);
-		if(isdefined(level.round_number) && level.console_last_round_used + 1 < level.round_number){
+		if(isdefined(level.round_number) && level.console_last_round_used < level.round_number){
 			level.console_last_round_used = level.round_number;
 			//check to make sure it is still waiting
 			if(self.waiting && !(self zm_utility::in_revive_trigger() || self.is_drinking)){ 
@@ -348,10 +348,12 @@ function trialMusic(trial_player){
 	wait(5);
 
 	//Music State Start
-	level thread zm_audio::sndMusicSystem_PlayState("trial");
+	level zm_audio::sndMusicSystem_PlayState("trial");
+	wait(0.05);
+	level.musicSystemOverride = true;
 
 	trial_player waittill("freerun_done");
-
+	level.musicSystemOverride = false;
 	//if the playing music is a higher priority than the trial music, don't flush
 	b_flush = isdefined(level.musicSystem) && isdefined(level.musicSystem.currentPlaytype);
 	b_flush &= level.musicSystem.currentPlaytype <= PLAYTYPE_SPECIAL;

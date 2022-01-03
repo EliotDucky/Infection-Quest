@@ -33,6 +33,10 @@ function trigWaitFor(){
 		d_name = MakeLocalizedString(wpn.displayname);
 		self SetCursorHint("HINT_NOICON");
 		self SetHintString("Press ^3[{+activate}]^7 for "+d_name);
+		if(isdefined(self.target)){
+			model = GetEnt(self.target, "targetname");
+			model thread rotateModel();
+		}
 		for(;;){
 			self waittill("trigger", player);
 			IPrintLnBold(wpn_name);
@@ -52,5 +56,13 @@ function trigWaitFor(){
 			player GadgetPowerSet(0, power);
 			player.hero_power = power;
 		}
+	}
+}
+
+//call on reward model
+function rotateModel(){
+	for(;;){
+		self RotateYaw(180, 2);
+		self waittill("rotatedone");
 	}
 }

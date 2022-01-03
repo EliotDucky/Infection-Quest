@@ -12,6 +12,6 @@
 #define CONSOLE_LIGHT_FX_AMBER	"zm_hotel/fx_console_health_org"
 #define CONSOLE_LIGHT_FX_GREEN	"zm_hotel/fx_console_health_grn"
 #define CONSOLE_LIGHT_FX_BLUE	"zm_hotel/fx_console_health_blu"
-#define CONSOLE_LIGHT_FX_PURPLE	"zm_hotel/fx_console_health_prp"
+#define CONSOLE_LIGHT_FX_PURPLE	"zm_hotel/fx_console_health_ppl"
 
 #define DEVMODE 				false
