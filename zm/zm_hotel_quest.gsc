@@ -358,7 +358,6 @@ function trialMusic(trial_player){
 	b_flush = isdefined(level.musicSystem) && isdefined(level.musicSystem.currentPlaytype);
 	b_flush &= level.musicSystem.currentPlaytype <= PLAYTYPE_SPECIAL;
 	if(b_flush){
-		IPrintLnBold("flush");
 		level thread zm_audio::sndMusicSystem_PlayState("none");
 	}
 }
@@ -368,9 +367,9 @@ function setDefenderHUD(players){
 	obj_str = "Objective: Defend The Console";
 	thread objectiveHUD(obj_str, players);
 	wait(1);
-	thread consoleHealthHUD(players);
+	//thread consoleHealthHUD(players);
 	self waittill("freerun_done");
-	thread removeConsoleHealthHUD();
+	//thread removeConsoleHealthHUD();
 }
 
 function private respawnZAfterTime(time = 5){
@@ -422,16 +421,12 @@ function consoleInitHealth(){
 function consoleHealthLighting(old_health){
 	col_num = -1;
 	if(self.health == CONSOLE_HEALTH){
-		IPrintLnBold("green");
 		col_num = 1;
 	}else if(self.health <= 0 && old_health > 0){
-		IPrintLnBold("none");
 		col_num = 0;
 	}else if(self.health < CONSOLE_HEALTH/4 && old_health >= CONSOLE_HEALTH/4){
-		IPrintLnBold("red");
 		col_num = 3;
 	}else if(self.health < CONSOLE_HEALTH/2 && old_health >= CONSOLE_HEALTH/2){
-		IPrintLnBold("amber");
 		col_num = 2;
 	}
 	if(col_num > -1){
@@ -446,7 +441,6 @@ function consoleHealthLighting(old_health){
 function consoleTakeDamage(damage, trial_player){
 	old_health = self.health;
 	self.health -= damage;
-	IPrintLnBold("Console Health: "+self.health);
 	self thread consoleHealthLighting(old_health);
 	if(self.health <= 0){
 		trial_level.freerun_won = false; //before notify to be safe
