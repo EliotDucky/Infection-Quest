@@ -53,6 +53,7 @@ function trigWaitFor(){
 
 			//give specialist weapon
 			player zm_weapons::weapon_give(wpn);
+			wait(0.05);
 			player GadgetPowerSet(0, power);
 			player.hero_power = power;
 		}
