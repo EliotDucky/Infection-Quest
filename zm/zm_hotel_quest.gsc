@@ -243,7 +243,7 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &temporaryLock, self);
 				self SetHintString("");
 
-				if(self doTrial(player)){
+				if(self doTrial(player) & !level.hotel_quest_complete){
 					self.complete = true;
 					self.waiting = false;
 				}
@@ -251,9 +251,11 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &unlock);
 			}
 		}else{
-			self SetHintString("Consoles reactivate after one full round");
-			wait(3);
-			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
+			if(self.waiting){
+				self SetHintString("Consoles reactivate after one full round");
+				wait(3);
+				self SetHintString("Press ^3[{+activate}]^7 to begin trial");
+			}
 		}
 	}
 }
@@ -405,7 +407,7 @@ function spawnReward(){
 			break;
 		}
 	}
-	wait(2.5); //make sure player not given a perk they already have but haven't been returned yet
+	wait(5); //make sure player not given a perk they already have but haven't been returned yet
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 	wait(0.05);
 }
