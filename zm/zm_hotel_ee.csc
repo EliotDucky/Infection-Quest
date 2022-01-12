@@ -49,6 +49,8 @@
 
 function main()
 {
+	LuiLoad("ui.uieditor.menus.hud.t7hud_zm_hotel");
+
 	zm_usermap::main();
 
 	include_weapons();
