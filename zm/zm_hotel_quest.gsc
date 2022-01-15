@@ -12,6 +12,7 @@
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
+#using scripts\zm\_zm;
 #using scripts\zm\_zm_audio;
 #using scripts\zm\_zm_blockers;
 #using scripts\zm\_zm_laststand;
@@ -21,6 +22,8 @@
 #using scripts\zm\_zm_utility;
 #using scripts\zm\_zm_weapons;
 #using scripts\zm\_zm_zonemgr;
+
+#using scripts\shared\ai\zombie_utility;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
@@ -884,6 +887,14 @@ function holdOutSpawning(){
 	self endon("holdout_spawning");
 	self endon("disconnect");
 	start_total = level.zombie_total;
+	//logic for start of round
+	start_of_round = zombie_utility::get_current_zombie_count() == 0 && level.zombie_total == 0 && !level.intermission;
+	if(start_of_round){
+		start_total = zm::get_zombie_count_for_round(level.round_number, level.players.size);
+		if(isdefined(level.zombie_total_set_func)){
+			start_total = level thread [[level.zombie_total_set_func]]();
+		}
+	}
 	wait(0.05);
 	level.holdout_active = true;
 	//no scoring
