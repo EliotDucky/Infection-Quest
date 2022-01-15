@@ -148,15 +148,6 @@ function setClientMovement(){
 	clientfield::set("client_movement", 1);
 }
 
-function resetConsoles(){
-	level.hotel_quest_complete = true;
-	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
-	foreach(console in level.quest_consoles){
-		console.complete = false;
-		console unlock();
-	}
-}
-
 //call on: quest console trig
 function questConsoleInit(){
 	self SetCursorHint("HINT_NOICON");
@@ -233,7 +224,7 @@ function questConsoleWaitFor(){
 	}
 	self.waiting = true;
 	self.complete = false;
-	while(true){
+	while(self.waiting){
 		self waittill("trigger", player);
 		if(isdefined(level.round_number) && level.console_last_round_used < level.round_number){
 			level.console_last_round_used = level.round_number;
@@ -243,7 +234,7 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &temporaryLock, self);
 				self SetHintString("");
 
-				if(self doTrial(player) & !level.hotel_quest_complete){
+				if(self doTrial(player)){
 					self.complete = true;
 					self.waiting = false;
 				}
@@ -251,11 +242,9 @@ function questConsoleWaitFor(){
 				array::thread_all(level.quest_consoles, &unlock);
 			}
 		}else{
-			if(self.waiting){
-				self SetHintString("Consoles reactivate after one full round");
-				wait(3);
-				self SetHintString("Press ^3[{+activate}]^7 to begin trial");
-			}
+			self SetHintString("Consoles reactivate after one full round");
+			wait(3);
+			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 		}
 	}
 }
@@ -279,11 +268,7 @@ function unlock(){
 		self.waiting = true;
 		self SetHintString("Press ^3[{+activate}]^7 to begin trial");
 		foreach(light in self.lights){
-			l_state = 4;
-			if(IS_TRUE(level.hotel_quest_complete)){
-				l_state = 5;
-			}
-			light clientfield::set("console_health_light", l_state);
+			light clientfield::set("console_health_light", 4);
 		}
 	}
 }
@@ -291,10 +276,6 @@ function unlock(){
 //call on: quest console trig
 //returns: true if beaten, false if failed
 function doTrial(player){
-
-	if(isdefined(self.lights) && self.lights.size > 0){
-		before_light_state = self.lights[0] clientfield::get("console_health_light");
-	}
 
 	//stop zombie spawns
 	level thread nukeAllZombies();
@@ -323,6 +304,9 @@ function doTrial(player){
 
 	player waittill("freerun_done");
 
+	//Music State End
+
+
 	wait(0.05); //needed to properly register if won
 	won = level.freerun_won; //freerun naming also carried into holdouts
 	if(!solo || DEVMODE && isdefined(self.health)){
@@ -339,9 +323,7 @@ function doTrial(player){
 	level flag::clear("spawn_zombies");
 
 	if(won){
-		if(!IS_TRUE(level.hotel_quest_complete)){
-			ArrayRemoveIndex(level.console_trials, trial_index, false);
-		}
+		ArrayRemoveIndex(level.console_trials, trial_index, false);
 		self thread spawnReward();
 		//unlock a door stage
 		level thread doorUnlock();
@@ -350,9 +332,8 @@ function doTrial(player){
 			light clientfield::set("console_health_light", 5);
 		}
 	}else{
-		//if already complete, will remain complete
 		foreach(light in self.lights){
-			light clientfield::set("console_health_light", before_light_state);
+			light clientfield::set("console_health_light", 4);
 		}
 	}
 
@@ -407,7 +388,6 @@ function spawnReward(){
 			break;
 		}
 	}
-	wait(5); //make sure player not given a perk they already have but haven't been returned yet
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 	wait(0.05);
 }
@@ -418,18 +398,15 @@ function doorUnlock(){
 		//inits if not existent yet
 		level.reward_door_stage = -1;
 	}
-	if(level.reward_door_stage < 3){
-		level.reward_door_stage ++;
-		i = level.reward_door_stage;
-		exploder::stop_exploder("red_light_"+i);
-		wait(0.05);
-		exploder::exploder("green_light_"+i);
-		if(level.reward_door_stage >= 3){
-			reward_door = GetEnt("reward_door", "script_flag");
-			reward_door thread zm_blockers::door_opened(0);
-			wait(15);
-			resetConsoles();
-		}
+	level.reward_door_stage ++;
+	i = level.reward_door_stage;
+	exploder::stop_exploder("red_light_"+i);
+	wait(0.05);
+	exploder::exploder("green_light_"+i);
+	if(level.reward_door_stage >= 3){
+
+		reward_door = GetEnt("reward_door", "script_flag");
+		reward_door thread zm_blockers::door_opened(0);
 	}
 }
 
