@@ -1135,16 +1135,11 @@ function nukeAllZombies(){
 //Call On: Player
 function holdoutCustomRevive(){
 	self zm_laststand::auto_revive(self, true); //stop wpn switching at end
-
+	wait(0.05);
+	
 	wait(0.05); //to be sure that revive finished
 	self notify("revive_done");
 	self StopRevive(self);
-
-	self notify("stop_revive_trigger");
-	if(isdefined(self.revivetrigger)){
-		self.revivetrigger Delete();
-		self.revivetrigger = undefined;
-	}
 
 	self EnableWeaponCycling();
 	self EnableOffhandWeapons();
@@ -1153,6 +1148,13 @@ function holdoutCustomRevive(){
 	self AllowStand(true);
 	self AllowSprint(true);
 	self SetStance("stand");
+
+	if(isdefined(self.revivetrigger)){
+		self.revivetrigger Delete();
+		self.revivetrigger = undefined;
+	}
+	self notify("stop_revive_trigger");
+	self UndoLastStand();
 }
 
 //Call On: Player
