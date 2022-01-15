@@ -388,6 +388,7 @@ function spawnReward(){
 			break;
 		}
 	}
+	wait(5);
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 	wait(0.05);
 }
