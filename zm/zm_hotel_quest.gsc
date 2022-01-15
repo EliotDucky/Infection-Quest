@@ -869,9 +869,7 @@ function callbackOnHoldoutDeath(){
 		//if in laststand or just died laststand::player_is_in_laststand()
 		wait(5);
 		self holdoutCustomRevive();
-		wait(0.05); //to be sure that revive finished
-		self notify("revive_done");
-		self StopRevive(self);
+		
 		level.freerun_won = false;
 		wait(0.05);
 		self notify("freerun_done");
@@ -1137,6 +1135,10 @@ function nukeAllZombies(){
 //Call On: Player
 function holdoutCustomRevive(){
 	self zm_laststand::auto_revive(self, true); //stop wpn switching at end
+
+	wait(0.05); //to be sure that revive finished
+	self notify("revive_done");
+	self StopRevive(self);
 
 	self notify("stop_revive_trigger");
 	if(isdefined(self.revivetrigger)){
