@@ -97,6 +97,9 @@ function __main__(){
 	//Movement
 	level thread setServerMovement();
 	level thread setClientMovement();
+	//Supports newly connecting players & resets those who died after holdout
+	callback::on_spawned(setServerMovement);
+	callback::on_spawned(setClientMovement);
 }
 
 function registerClientFields(){
