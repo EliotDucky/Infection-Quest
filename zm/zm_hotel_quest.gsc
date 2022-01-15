@@ -241,7 +241,7 @@ function questConsoleWaitFor(){
 				wait(0.05);
 				array::thread_all(level.quest_consoles, &unlock);
 			}
-		}else{
+		}else if(self.waiting){
 			self SetHintString("Consoles reactivate after one full round");
 			wait(3);
 			self SetHintString("Press ^3[{+activate}]^7 to begin trial");
