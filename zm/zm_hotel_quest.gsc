@@ -12,6 +12,8 @@
 #using scripts\shared\system_shared;
 #using scripts\shared\util_shared;
 
+#using scripts\zm\zm_hotel_ee;
+
 #using scripts\zm\_zm;
 #using scripts\zm\_zm_audio;
 #using scripts\zm\_zm_blockers;
@@ -61,6 +63,7 @@ function __init__(){
 
 	zm_audio::musicState_Create("trial", PLAYTYPE_SPECIAL, "hotel_ee_trial0", "hotel_ee_trial1", "hotel_ee_trial2", "hotel_ee_trial3");
 	zm_audio::musicState_Create("none", PLAYTYPE_SPECIAL, "none");
+	zm_hotel::addPowerupTimeoutOverride(&zm_powerup_player_ammo::timeoutCustomTime);
 }
 
 function __main__(){
@@ -951,7 +954,7 @@ function holdoutPowerupDrops(powerup, times_to_spawn, player_in_holdout){
 		//spawn powerup
 		point = array::random(points);
 		u = undefined;
-		zm_powerups::specific_powerup_drop(powerup, point.origin, u, u, u, u, true);
+		zm_powerups::specific_powerup_drop(powerup, point.origin, u, u, u, u, false);
 	}
 }
 

@@ -24,6 +24,8 @@
 #using scripts\zm\_zm_weapons;
 #using scripts\zm\_zm_zonemgr;
 
+#insert scripts\zm\_zm_powerups.gsh;
+
 #using scripts\shared\ai\zombie_utility;
 
 //Perks
@@ -63,6 +65,8 @@
 
 #using scripts\zm\zm_usermap;
 
+#namespace zm_hotel;
+
 //*****************************************************************************
 // MAIN
 //*****************************************************************************
@@ -87,6 +91,8 @@ function main()
 
 	zm_weap_spike_launcher::setSpikeAttractDist(512);
 
+	level._powerup_timeout_custom_time = &powerupTimeoutCustomTime;
+
 	thread scriptbundleTest();
 }
 
@@ -99,6 +105,26 @@ function usermap_test_zone_init()
 function custom_add_weapons()
 {
 	zm_weapons::load_weapon_spec_from_table("gamedata/weapons/zm/zm_levelcommon_weapons.csv", 1);
+}
+
+function addPowerupTimeoutOverride(func){
+	DEFAULT(level.powerup_timeout_custom_functions, array());
+	array::add(level.powerup_timeout_custom_functions, func);
+}
+
+//Call On: spawned powerup
+function powerupTimeoutCustomTime(){
+	time = undefined;
+	foreach(func in level.powerup_timeout_custom_functions){
+		time = self [[func]]();
+		if(isdefined(time)){
+			break;
+		}
+	}
+	if(!isdefined(time)){
+		time = N_POWERUP_DEFAULT_TIME;
+	}
+	return time;
 }
 
 //Call On: level

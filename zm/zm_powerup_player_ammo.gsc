@@ -48,3 +48,12 @@ function powerupPlayerAmmo(player){
 		LUINotifyEvent(player,  &"zombie_notification", 1, self.hint);
 	}
 }
+
+//call on: powerup
+function timeoutCustomTime(){
+	time = undefined;
+	if(self.powerup_name == "player_ammo"){
+		time = 90;
+	}
+	return time;
+}
