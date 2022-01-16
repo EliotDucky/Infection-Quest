@@ -76,6 +76,7 @@ function main()
 	level.dog_rounds_allowed = 0;
 	
 	zm_usermap::main();
+	level.giveCustomCharacters =&giveCustomCharacters;
 	level._zombie_custom_add_weapons =&custom_add_weapons;
 	
 	//Setup the levels Zombie Zone Volumes
@@ -125,6 +126,82 @@ function powerupTimeoutCustomTime(){
 		time = N_POWERUP_DEFAULT_TIME;
 	}
 	return time;
+}
+
+function giveCustomCharacters()
+{
+	if( isdefined(level.hotjoin_player_setup) && [[level.hotjoin_player_setup]]("c_zom_farmgirl_viewhands") )
+	{
+		return;
+	}
+	
+	self DetachAll();
+	
+	// Only Set Character Index If Not Defined, Since This Thread Gets Called Each Time Player Respawns
+	//-------------------------------------------------------------------------------------------------
+	if ( !isdefined( self.characterIndex ) )
+	{
+		self.characterIndex = assign_lowest_unused_character_index();
+	}
+	
+	self.favorite_wall_weapons_list = [];
+	self.talks_in_danger = false;	
+	
+	self SetCharacterBodyType( self.characterIndex );
+	self SetCharacterBodyStyle( 0 );
+	self SetCharacterHelmetStyle( 0 );
+	self thread zm_usermap::set_exert_id();
+	
+}
+
+function assign_lowest_unused_character_index()
+{
+	//get the lowest unused character index
+	charindexarray = [];
+	charindexarray[0] = 0;// - Dempsey )
+	charindexarray[1] = 1;// - Nikolai )
+	charindexarray[2] = 2;// - Richtofen )
+	charindexarray[3] = 3;// - Takeo )
+	
+	players = GetPlayers();
+	if ( players.size == 1 )
+	{
+		charindexarray = array::randomize( charindexarray );
+		if ( charindexarray[0] == 2 )
+		{
+			level.has_richtofen = true;	
+		}
+
+		return charindexarray[0];
+	}
+	else // 2 or more players just assign the lowest unused value
+	{
+		n_characters_defined = 0;
+
+		foreach ( player in players )
+		{
+			if ( isDefined( player.characterIndex ) )
+			{
+				ArrayRemoveValue( charindexarray, player.characterIndex, false );
+				n_characters_defined++;
+			}
+		}
+		
+		if ( charindexarray.size > 0 )
+		{	
+			// Randomize the array
+			charindexarray = array::randomize(charindexarray);
+			if ( charindexarray[0] == 2 )
+			{
+				level.has_richtofen = true;	
+			}
+
+			return charindexarray[0];
+		}
+	}
+
+	//failsafe
+	return 0;
 }
 
 //Call On: level
