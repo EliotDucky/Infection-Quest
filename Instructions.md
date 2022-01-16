@@ -118,6 +118,14 @@ use clips as you would in a normal door, (example):
 | script_string	| move								|
 | script_vector	| 0 0 -100 							|
 
+- Rewards door camera position (camera placed here as the door opens)
+- Height should be about 72 off the ground
+
+| Key           | Value                             |
+| -------------:|:--------------------------------- |
+| classname     | script_origin                     |
+| targetname    | reward_door_cam                   |
+
 - Perk drop rewards with `script_notworthy: "r"`
 
 | Key 				| Value 							|

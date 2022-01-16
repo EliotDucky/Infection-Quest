@@ -411,9 +411,23 @@ function doorUnlock(){
 	wait(0.05);
 	exploder::exploder("green_light_"+i);
 	if(level.reward_door_stage >= 3){
-
 		reward_door = GetEnt("reward_door", "script_flag");
+		camera_pos = GetEnt("reward_door_cam", "targetname");
+		players = GetPlayers();
+		wait(2.5);
+		foreach(player in players){
+			player CameraActivate(true);
+			player CameraSetPosition(camera_pos.origin);
+			player CameraSetLookAt(reward_door.origin);
+			player FreezeControls(true);
+		}
+		wait(1);
 		reward_door thread zm_blockers::door_opened(0);
+		wait(1.5);
+		foreach(player in players){
+			player CameraActivate(false);
+			player FreezeControls(false);
+		}
 	}
 }
 
