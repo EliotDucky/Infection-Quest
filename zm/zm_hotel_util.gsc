@@ -1,5 +1,7 @@
 #using scripts\shared\array_shared;
 
+#insert scripts\shared\shared.gsh;
+
 #insert scripts\zm\_zm_powerups.gsh;
 
 #namespace zm_hotel_util;

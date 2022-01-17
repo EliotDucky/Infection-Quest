@@ -128,6 +128,11 @@ function giveCustomCharacters()
 	self SetCharacterBodyType( self.characterIndex );
 	self SetCharacterBodyStyle( 0 );
 	self SetCharacterHelmetStyle( 0 );
+
+	self SetMoveSpeedScale( 1 );
+	self SetSprintDuration( 4 );
+	self SetSprintCooldown( 0 );
+
 	self thread zm_usermap::set_exert_id();
 	
 }

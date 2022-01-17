@@ -33,6 +33,7 @@
 
 #using scripts\zm\zm_powerup_player_ammo;
 #using scripts\zm\zm_hotel_rewards;
+#using scripts\zm\zm_hotel_util;
 #insert scripts\zm\zm_hotel_quest.gsh;
 
 #precache("triggerstring", "Press ^3[{+activate}]^7 to begin trial");
@@ -465,7 +466,7 @@ function consoleTakeDamage(damage, trial_player){
 	self.health -= damage;
 	self thread consoleHealthLighting(old_health);
 	if(self.health <= 0){
-		trial_level.freerun_won = false; //before notify to be safe
+		level.freerun_won = false; //before notify to be safe
 		wait(0.05);
 		trial_player notify("freerun_done");
 	}
@@ -738,7 +739,7 @@ function freerunTimer(limit, hud_txt, b_expiry_good=false){
 	self endon("freerun_done");
 	hud_txt SetTimer(limit);
 	wait(limit);
-	level.freerun_won = b_expiry_good;
+	level.freerun_won = b_expiry_good && !IS_TRUE(level.holdout_down);
 	self notify("freerun_done");
 }
 
@@ -822,6 +823,7 @@ function checkPointWaitFor(){
 //Main holdout quest function
 //Call On: the player
 function holdOut(loc_struct, _time = 90){
+	level.holdout_down = false;
 
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
@@ -881,14 +883,13 @@ function isHoldoutActive(){
 //Through callback::on_laststand
 function callbackOnHoldoutDeath(){
 	//is this player the one doing the holdout
-	holdout_down = isdefined(self) && IsPlayer(self);
-	holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
-	if(holdout_down){
+	level.holdout_down = isdefined(self) && IsPlayer(self);
+	level.holdout_down &= IS_TRUE(level.holdout_active) && IS_TRUE(self.in_holdout);
+	if(level.holdout_down){
 		//if in laststand or just died laststand::player_is_in_laststand()
 		wait(5);
 		self holdoutCustomRevive();
 		
-		level.freerun_won = false;
 		wait(0.05);
 		self notify("freerun_done");
 	}
