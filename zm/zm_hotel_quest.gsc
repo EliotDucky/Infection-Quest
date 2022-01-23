@@ -30,6 +30,7 @@
 
 #insert scripts\zm\_zm_audio.gsh;
 #insert scripts\zm\_zm_perks.gsh;
+#insert scripts\zm\_zm_powerups.gsh;
 
 #using scripts\zm\zm_powerup_player_ammo;
 #using scripts\zm\zm_hotel_rewards;
@@ -39,6 +40,7 @@
 #precache("triggerstring", "Press ^3[{+activate}]^7 to begin trial");
 #precache("triggerstring", "Consoles reactivate after one full round");
 #precache("triggerstring", "This console is locked");
+#precache("string", "PERK LIMIT INCREASED TO MAXIMUM");
 
 #namespace zm_hotel_quest;
 
@@ -400,6 +402,7 @@ function spawnReward(){
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
 
 	//give extra perk slot to allow buyback if player downed
+	wait(N_POWERUP_DEFAULT_TIME); //make sure can't get two extra perks
 	level.perk_purchase_limit ++;
 	wait(0.05);
 }
@@ -433,7 +436,33 @@ function doorUnlock(){
 			player CameraActivate(false);
 			player FreezeControls(false);
 		}
+
+		wait(3);
+		level.perk_purchase_limit = 9;
+		players = GetPlayers();
+		array::thread_all(players, &informPerkLimitMaxHUD);
 	}
+}
+
+//call on: player
+function informPerkLimitMaxHUD(){
+	font = "default";
+	fontscale = 2;
+	if(level.Splitscreen && !level.hidef){
+		fontscale = 3;
+	}
+	txt = self hud::createFontString(font, fontscale);
+	txt.vertalign = "bottom";
+	txt.y = -100;
+	txt.alpha = 0;
+	txt SetText("PERK LIMIT INCREASED TO MAXIMUM");
+	txt FadeOverTime(0.5);
+	txt.alpha = 1;
+	wait(6);
+	txt FadeOverTime(0.5);
+	txt.alpha = 0;
+	wait(0.5);
+	txt Destroy();
 }
 
 //call on: console trig
