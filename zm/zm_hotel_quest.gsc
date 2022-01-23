@@ -398,6 +398,9 @@ function spawnReward(){
 	}
 	wait(5);
 	zm_powerups::specific_powerup_drop("free_perk", reward_point.origin);
+
+	//give extra perk slot to allow buyback if player downed
+	level.perk_purchase_limit ++;
 	wait(0.05);
 }
 
