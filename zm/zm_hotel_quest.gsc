@@ -702,10 +702,10 @@ function takePerks(){
 			}
 			//hide the HUD
 			self zm_perks::perk_hud_destroy(perk);
-
-			self.num_perks--;
 		}
 	}
+	self.perks_active = [];
+	self.num_perks = 0;
 }
 
 function selfReviveHandleInit(){
@@ -733,6 +733,7 @@ function givePerks(){
 			self zm_perks::give_perk(perk);
 		}
 	}
+	self.num_perks = self._perks.size;
 	if(level.using_solo_revive){
 		//make sure can't be exploited after this
 		level.solo_game_free_player_quickrevive = undefined;
@@ -924,6 +925,9 @@ function callbackOnHoldoutDeath(){
 		
 		wait(0.05);
 		self notify("freerun_done");
+	}else{
+		self waittill("player_revived");
+		self.num_perks = 0;
 	}
 }
 
