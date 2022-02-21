@@ -2,11 +2,14 @@
 #using scripts\shared\system_shared;
 
 #using scripts\zm\_zm_hero_weapon;
-#using scripts\zm\_zm_weapons;
+#using scripts\zm\_zm_perks;
 #using scripts\zm\_zm_utility;
+#using scripts\zm\_zm_weapons;
 
 #insert scripts\shared\shared.gsh;
 #insert scripts\shared\version.gsh;
+
+#insert scripts\zm\_zm_perks.gsh;
 
 #define PREFIX		"hero"
 
@@ -20,10 +23,22 @@ function autoexec __init__system__(){
 function __init__(){
 	trigs = GetEntArray("reward_room_trig", "targetname");
 	array::thread_all(trigs, &trigWaitFor);
+	level thread setupPerkRewards();
 }
 
-function __main__(){
+//thread
+function setupPerkRewards(){
+	level._custom_perks[PERK_ELECTRIC_CHERRY] = 0;
+	level._custom_perks[PERK_WIDOWS_WINE] = 0;
+	perk_trigs = GetEntArray("reward_room_perk", "targetname");
+	array::thread_all(perk_trigs, &zm_perks::vending_trigger_think);
+	wait(0.5);
+	level waittill("quest_reward_door");
+	level notify(PERK_WIDOWS_WINE+"_power_on");
+	level notify(PERK_ELECTRIC_CHERRY+"_power_on");
 }
+
+function __main__(){}
 
 //call on: reward trig
 function trigWaitFor(){

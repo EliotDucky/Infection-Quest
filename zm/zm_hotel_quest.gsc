@@ -419,6 +419,7 @@ function doorUnlock(){
 	wait(0.05);
 	exploder::exploder("green_light_"+i);
 	if(level.reward_door_stage >= 3){
+		level notify("quest_reward_door");
 		reward_door = GetEnt("reward_door", "script_flag");
 		camera_pos = GetEnt("reward_door_cam", "targetname");
 		players = GetPlayers();
