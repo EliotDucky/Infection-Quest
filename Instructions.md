@@ -152,6 +152,14 @@ use clips as you would in a normal door, (example):
 | classname     | script_model                       |
 | targetname    | *target of trigger*                |
 
+- Perk reward trigger
+
+| Key               | Value                                 |
+| -----------------:|:---------------------------------     |
+| classname         | trigger_use                           |
+| targetname        | reward_room_perk                      |
+| script_noteworthy | *specialty_name* (incl. "specialty")  |
+
 ## Holdout
 
 Each holdout island requires:
