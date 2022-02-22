@@ -54,7 +54,6 @@ function trigWaitFor(){
 		}
 		for(;;){
 			self waittill("trigger", player);
-			IPrintLnBold(wpn_name);
 			if(player zm_utility::get_player_hero_weapon() === wpn){
 				//player is trying to take same weapon - go back to waittill
 				continue;

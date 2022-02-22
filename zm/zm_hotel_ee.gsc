@@ -73,9 +73,6 @@
 function main()
 {
 	level.dog_rounds_allowed = 0;
-
-	//DEV ONLY - REMOVE
-	level.perk_bought_func = &dev_perk_bought_func;
 	
 	zm_usermap::main();
 	level.giveCustomCharacters =&giveCustomCharacters;
@@ -98,24 +95,6 @@ function main()
 	thread scriptbundleTest();
 
 	level flag::wait_till("power_on");
-	GetPlayers()[0] thread printing();
-}
-
-/*Ignore these Fil*/
-function printing(){
-	for(;;){
-		IPrintLn("self.num_perks: "+self.num_perks);
-		IPrintLn("self.perks.size: "+self.perks_active.size);
-		wait(1);
-	}
-}
-
-//DEV ONLY
-//call on: player
-function dev_perk_bought_func(str_perk){
-	str = "self.num_perks: " + self.num_perks;
-	str += "; self limit: " +zm_utility::get_player_perk_purchase_limit();
-	IPrintLnBold(str);
 }
 
 function usermap_test_zone_init()
