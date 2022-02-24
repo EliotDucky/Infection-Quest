@@ -157,7 +157,7 @@ use clips as you would in a normal door, (example):
 | Key               | Value                                 |
 | -----------------:|:---------------------------------     |
 | classname         | trigger_use                           |
-| targetname        | reward_room_perk                      |
+| targetname        | zombie_vending                        |
 | script_noteworthy | *specialty_name* (incl. "specialty")  |
 
 ## Holdout
