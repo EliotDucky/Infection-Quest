@@ -1,4 +1,5 @@
 #using scripts\shared\array_shared;
+#using scripts\shared\flag_shared;
 #using scripts\shared\system_shared;
 
 #using scripts\zm\_zm_hero_weapon;
@@ -28,13 +29,17 @@ function __init__(){
 
 //thread
 function setupPerkRewards(){
-	level._custom_perks[PERK_ELECTRIC_CHERRY] = 0;
-	level._custom_perks[PERK_WIDOWS_WINE] = 0;
-	perk_trigs = GetEntArray("reward_room_perk", "targetname");
-	array::thread_all(perk_trigs, &zm_perks::vending_trigger_think);
-	wait(0.5);
-	level waittill("quest_reward_door");
+	wait(1);
+	level._custom_perks[PERK_DEAD_SHOT].cost = 0;
+	level._custom_perks[PERK_ELECTRIC_CHERRY].cost = 0;
+	level._custom_perks[PERK_WIDOWS_WINE].cost = 0;
+	level flag::wait_till("power_on");
+	//network protection
+	wait(1);
+	level notify(PERK_DEAD_SHOT+"_power_on");
+	wait(1);
 	level notify(PERK_WIDOWS_WINE+"_power_on");
+	wait(1);
 	level notify(PERK_ELECTRIC_CHERRY+"_power_on");
 }
 
