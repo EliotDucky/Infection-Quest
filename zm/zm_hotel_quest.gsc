@@ -54,7 +54,7 @@ function __init__(){
 
 	//init trials
 	level.console_trials = array(&freerun1, &freerun2, &holdOut1, &holdOut2);
-  
+
 	//get consoles
 	level.quest_consoles = GetEntArray("quest_console", "targetname");
 	array::thread_all(level.quest_consoles, &questConsoleInit);
@@ -162,6 +162,7 @@ function setClientMovement(){
 function questConsoleInit(){
 	self SetCursorHint("HINT_NOICON");
 	self SetHintString("");
+	self UseTriggerRequireLookAt();
 	
 	self.lights = [];
 	trgs = GetEntArray(self.target, "targetname");
