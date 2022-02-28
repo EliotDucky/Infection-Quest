@@ -579,7 +579,7 @@ function randomAttackAnim(ai){
 
 //call On: player
 function freerun1(){
-	time_limit = 120; //seconds
+	time_limit = FREERUN_TIME; //seconds
 	start_struct = struct::get("freerun1", "targetname");
 	completion_trigs = GetEntArray("freerun1_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple
@@ -589,7 +589,7 @@ function freerun1(){
 
 //call On: player
 function freerun2(){
-	time_limit = 120; //seconds
+	time_limit = FREERUN_TIME; //seconds
 	start_struct = struct::get("freerun2", "targetname");
 	completion_trigs = GetEntArray("freerun2_complete", "targetname"); //trigger_multiple
 	chasm_trigs = GetEntArray("chasm_trigger", "targetname"); //trigger_multiple

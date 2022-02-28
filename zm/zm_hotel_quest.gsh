@@ -2,6 +2,7 @@
 #define ZOMBIE_POI_RANK			1000
 #define HOLDOUT_WPNS 			array("ar_standard", "smg_standard")
 #define HOLDOUT_TIME			90
+#define FREERUN_TIME 			120
 #define HOLDOUT_PWRUP_TIMES		array(20, 40, 60)
 #define CONSOLE_ATTACK_SQ_RAD	8000
 #define CONSOLE_HEALTH			1000
