@@ -94,8 +94,6 @@ function main()
 	zm_weap_spike_launcher::setSpikeAttractDist(512);
 	level._powerup_timeout_custom_time = &zm_hotel_util::powerupTimeoutCustomTime;
 
-	thread scriptbundleTest();
-
 	level flag::wait_till("power_on");
 }
 
@@ -189,20 +187,4 @@ function assign_lowest_unused_character_index()
 
 	//failsafe
 	return 0;
-}
-
-//Call On: level
-function scriptbundleTest(){
-	trig = GetEnt("scriptbundle_test", "targetname");
-	trig SetHintString("Press ^3[{+activate}]^7 to test scene");
-	trig SetCursorHint("HINT_NOICON");
-	while(true){
-		trig waittill("trigger", player);
-		IPrintLnBold("play");
-		player thread scene::play("cin_gen_player_hack_start", player);
-		player clientfield::set_to_player("sndCCHacking", 1);
-		wait(2);
-		player clientfield::set_to_player( "sndCCHacking", 0);
-		player scene::play("cin_gen_player_hack_finish", player);
-	}
 }

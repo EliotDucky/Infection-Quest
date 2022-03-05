@@ -252,9 +252,7 @@ Remember that powerups spawn ~56 units above where they're told to
 
 ```
 //Spike Launcher
-weapon,spike_launcher_zm
-weapon,spike_charge_zm
-scriptparsetree,scripts/zm/zm_hotel_spike_launcher.gsc
+include,spike_launcher_zm
 ```
 
 - In `mapname.csc`

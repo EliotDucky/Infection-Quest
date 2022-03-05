@@ -265,7 +265,6 @@ function temporaryLock(exception){
 	//exception is the console which has just been activated
 	if(!(self == exception || self.complete)){
 		self.waiting = false;
-		//self notify("not_waiting");
 		self SetHintString("This console is locked");
 		foreach(light in self.lights){
 			light clientfield::set("console_health_light", 0);
@@ -293,7 +292,6 @@ function doTrial(player){
 	level flag::clear("spawn_zombies");
 	//later set to respawn if not solo or in holdout function
 
-	//PLAYER ANIM
 	players = GetPlayers();
 	solo = players.size <= 1;
 	pois = [];
@@ -378,9 +376,7 @@ function setDefenderHUD(players){
 	obj_str = "Objective: Defend The Console";
 	thread objectiveHUD(obj_str, players);
 	wait(1);
-	//thread consoleHealthHUD(players);
 	self waittill("freerun_done");
-	//thread removeConsoleHealthHUD();
 }
 
 function private respawnZAfterTime(time = 5){
@@ -561,7 +557,6 @@ function zombieAttackConsoleAnim(ai, trial_player){
 		ai AnimScripted("melee", ai.origin,
 			ai.angles, attack_anim, "normal",
 			undefined, undefined, 0.5, 0.5);
-		//PLAY HIT SOUND
 		wait((attack_anim_time + 1)/2);
 		self consoleTakeDamage(Z_CONSOLE_DAMAGE, trial_player);
 		wait((attack_anim_time + 1)/2);
@@ -779,7 +774,7 @@ function freerunTimer(limit, hud_txt, b_expiry_good=false){
 }
 
 //call on: player in freerun
-//THREAD
+//thread
 function freerunTimerInit(time_limit, obj_str, b_expiry_good){
 
 	thread objectiveHUD(obj_str, array(self));
@@ -863,7 +858,6 @@ function holdOut(loc_struct, _time = 90){
 	map_struct = Spawn("script_origin", self.origin);
 	map_struct.angles = self.angles;
 
-	
 	//loadout
 	wpn = array::random(HOLDOUT_WPNS);
 	wpn = GetWeapon(wpn);
@@ -899,7 +893,6 @@ function holdOut(loc_struct, _time = 90){
 		level thread respawnZAfterTime(0.05);
 		level thread holdOutSpawning();
 	}
-	//state = self util::waittill_any_ex(_time, "freerun_done");
 	self waittill("freerun_done");
 	self.in_holdout = false;
 	level.holdout_active = false;
@@ -1034,54 +1027,6 @@ function objectiveHUD(str, players){
 	foreach(txt in txts){
 		txt Destroy();
 	}
-}
-
-//call on: console trig
-function consoleHealthHUD(players){
-	str = "Console Health: ";
-	//MAKE TXTS A LEVEL.VAR FOR FADING OUT IF CONSOLE BEAT/LOST
-	//MAKE SURE TO DESTROY WHEN THIS HAPPENS
-	level.console_health_txts = [];
-	foreach(player in players){
-		font = "default";
-		fontscale = 2;
-		if(level.Splitscreen && !level.hidef){
-			fontscale = 3;
-		}
-		txt = player hud::createFontString(font, fontscale);
-		txt.y = 20;
-		txt.alpha = 0;
-
-		array::add(level.console_health_txts, txt);
-
-		txt FadeOverTime(0.75);
-		txt.alpha = 1;
-	}
-	wait(0.75);
-	while(self.health > 0){
-		status = "OK";
-		colour = "^2";
-		if(self.health < CONSOLE_HEALTH/2){
-			status = "DAMAGED";
-			colour = "^3";
-		}else if(self.health < CONSOLE_HEALTH/4){
-			status = "CRITICAL";
-			colour = "^1";
-		}
-		foreach(txt in level.console_health_txts){
-			txt SetText(colour + str + status +"^7");
-		}
-		wait(1);
-	}
-}
-
-function removeConsoleHealthHUD(){
-	foreach(txt in level.console_health_txts){
-		txt FadeOverTime(0.75);
-		txt.alpha = 0;
-	}
-	wait(0.75);
-	//DESTROY causes error loop
 }
 
 //Call On: Player
