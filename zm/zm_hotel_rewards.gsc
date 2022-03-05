@@ -30,17 +30,29 @@ function __init__(){
 //thread
 function setupPerkRewards(){
 	wait(1);
-	level._custom_perks[PERK_DEAD_SHOT].cost = 0;
-	level._custom_perks[PERK_ELECTRIC_CHERRY].cost = 0;
-	level._custom_perks[PERK_WIDOWS_WINE].cost = 0;
+	DEFAULT(level._custom_perks, array());
+	perks = array(PERK_DEAD_SHOT, PERK_ELECTRIC_CHERRY, PERK_WIDOWS_WINE);
+	perk_trigs = GetEntArray("zombie_vending", "targetname");
+	_temp = [];
+	foreach(perk_trig in perk_trigs){
+		if(isdefined(perk_trig.script_noteworthy) && array::contains(perks, perk_trig.script_noteworthy)){
+			array::add(_temp, perk_trig);
+		}
+	}
+	perk_trigs = _temp;
 	level flag::wait_till("power_on");
-	//network protection
-	wait(1);
-	level notify(PERK_DEAD_SHOT+"_power_on");
-	wait(1);
-	level notify(PERK_WIDOWS_WINE+"_power_on");
-	wait(1);
-	level notify(PERK_ELECTRIC_CHERRY+"_power_on");
+	foreach(perk in perks){
+		DEFAULT(level._custom_perks[perk], SpawnStruct());
+		level._custom_perks[perk].cost = 0;
+	}
+	wait(0.05);
+	foreach(perk_trig in perk_trigs){
+		perk_trig zm_perks::reset_vending_hint_string();
+	}
+	foreach(perk in perks){
+		level notify(perk+"_power_on");
+		wait(0.5);
+	}
 }
 
 function __main__(){}
